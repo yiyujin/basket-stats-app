@@ -1,0 +1,136 @@
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&display=swap');
+
+:root {
+    --font-size-large : 20px;
+    --font-size-medium : 18px;
+    --font-size-small : 16px;
+
+    /* weight : 400 - 900 */
+    --font-Orbitron : 'Orbitron'; 
+
+    --radius : 4px;
+
+    /* COLORS */
+    /* --pt : #02c277; */
+    --pt : #4112a5;
+
+    --black100 : rgba(0, 0, 0, 0.88);
+    --black80 : rgba(0, 0, 0, 0.64);
+    --black56 : rgba(0, 0, 0, 0.56);
+    --black40 : rgba(0, 0, 0, 0.4);
+    --black16 : rgba(0, 0, 0, 0.16);
+    --black8 : #00000014;
+    --black4 : rgba(0, 0, 0, 0.04);
+    --black2 : rgba(0, 0, 0, 0.02);
+  
+    --white100 : rgba(255, 255, 255, 0.88);
+    --white80 : rgba(255, 255, 255, 0.64);
+    --white56 : rgba(255, 255, 255, 0.56);
+    --white40 : rgba(255, 255, 255, 0.4);
+    --white24 : rgba(255, 255, 255, 0.24);
+    --white16 : rgba(255, 255, 255, 0.16);
+    --white8 : rgba(255, 255, 255, 0.08);
+    --white4 : rgba(255, 255, 255, 0.04);
+    --white2 : rgba(255, 255, 255, 0.02);
+}
+
+* {
+    box-sizing: border-box;
+    margin : 0;
+}
+  
+.login-page {
+    width: 100vw;
+    height: 100vh;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    background: url(https://plus.unsplash.com/premium_photo-1685366454123-3e47003286ae?q=80&w=1333&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D);
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    position: relative;
+}
+
+/* Color overlay for background image */
+.login-page::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+
+    /* TINT */
+    background-color: var(--pt);
+    opacity: 1.90;
+
+    z-index: 0;
+}
+
+.login-title {
+    font-size: 24px;
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 500;
+
+    color: white;
+    position: relative;
+
+    z-index: 1;
+}
+
+.login-logo {
+    width: 180px;
+    height: 180px;
+    position: relative;
+    z-index: 1;
+}
+
+.login-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    width: 280px;
+    position: relative;
+    z-index: 1;
+}
+
+.login-container > * {
+    width: 100%;
+    height: 40px;
+    padding: 10px;
+
+    border-radius: var(--radius);
+    border: 1px solid var(--white40);
+    background-color: var(--white40);
+}
+
+.login-container > input {
+    color : white;
+}
+
+.login-container > input::placeholder {
+    color : white;
+}
+
+.login-button {
+    cursor: pointer;
+    background-color : white;
+}
+
+.login-graphics {
+    position: absolute;
+    background-color: var(--pt);
+    top: 50%;
+    left: 0;
+    z-index: 10;
+    opacity: 0.7;
+}
+
+input:focus, button:focus {
+
+}
