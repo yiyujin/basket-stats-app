@@ -3,7 +3,7 @@
 :root {
     --font-size-large : 20px;
     --font-size-medium : 18px;
-    --font-size-small : 16px;
+    --font-size-small : 14px;
 
     /* weight : 400 - 900 */
     --font-Orbitron : 'Orbitron'; 
@@ -37,8 +37,31 @@
 * {
     box-sizing: border-box;
     margin : 0;
+
+    line-height : 140%;
+}
+
+.page {
+    /* margin-left : 24px;
+    margin-right : 24px; */
 }
   
+.page-contents {
+    margin : 40px;
+}
+
+hr {
+    border : 1px solid var(--black4);
+    margin-top : 40px;
+    margin-bottom : 40px;
+}
+
+h1, h2, h3, p {
+    padding-top : 8px;
+    /* padding-bottom : 8px; */
+}
+
+/* LOGIN */
 .login-page {
     width: 100vw;
     height: 100vh;
@@ -133,4 +156,57 @@
 
 input:focus, button:focus {
 
+}
+
+/* PLAYER */
+.player-banner {
+    width : 100%;
+    height : 300px;
+
+    display : flex;
+    flex-direction: column;
+    justify-content: flex-end;
+
+    background-color: var(--pt);
+
+    color : white;
+
+    padding : 40px;
+}
+
+.highlight-text {
+    background-color : var(--black8);
+}
+
+.player-title {
+    /* width : 100%; */
+    flex : 1;
+}
+
+.grid-container {
+    display : grid;
+    grid-template-columns : repeat(3, 1fr); /* 3 columns */
+    gap : 8px;
+    margin: auto; /* Centering the grid */
+}
+
+.grid-item {
+    display: flex;
+    flex-direction: column;
+
+    /* align-items: center;
+    text-align: center; */
+
+    padding-bottom : 40px;
+}
+
+/* Make the video span full width on the next row */
+.grid-item video, .grid-item img {
+    grid-column: span 3; /* Forces video to take full width */
+    width: 100%;
+}
+
+.meta {
+    color : var(--black40);
+    font-size : var(--font-size-small);
 }
