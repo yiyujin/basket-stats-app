@@ -6,8 +6,9 @@ import Nav from './components/Nav';
 
 // PAGES
 import Home from './pages/Home';
-import Player from './pages/Player';
 import Login from './pages/Login';
+import Player from './pages/Player';
+import Team from './pages/Team';
 
 export default function App() {
   return (
@@ -19,6 +20,7 @@ export default function App() {
       <Route path = "/" element = { <Home/>}/>
       {/* <Route path = "/player:id" element = { <Player/>}/> */}
       <Route path = "/player" element = { <Player/>}/>
+      <Route path = "/team" element = { <Team/>}/>
     </Routes>
     </div>
   );

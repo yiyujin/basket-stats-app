@@ -39,6 +39,8 @@
     margin : 0;
 
     line-height : 140%;
+
+    box-shadow : 0 0 1px rgba(0, 255, 255, 1.0);
 }
 
 .page {
@@ -50,6 +52,8 @@
     margin : 40px;
 }
 
+/* HTML ELEMENTS */
+
 hr {
     border : 1px solid var(--black4);
     margin-top : 40px;
@@ -59,6 +63,14 @@ hr {
 h1, h2, h3, p {
     padding-top : 8px;
     /* padding-bottom : 8px; */
+}
+
+select {
+    background-color : var(--black40);
+    color : white;
+    padding : 4px;
+    
+    width : 200px;
 }
 
 /* LOGIN */
@@ -216,6 +228,8 @@ input:focus, button:focus {
     width : 100%;
     height : 48px;
 
+    z-index : 1;
+
     position : fixed;
     display : flex;
     flex-direction: row;
@@ -231,4 +245,34 @@ input:focus, button:focus {
 
 .nav>p {
     padding-top : 0px;
+}
+
+.icon {
+    width : 18px !important;
+    height : 18px !important;
+}
+
+.profile-image {
+    object-position: top;
+    object-fit: cover;
+}
+
+.highlight-container {
+    position: relative;
+
+    background-color: lightgray;
+}
+
+.highlight-thumbnail {
+    width : 80px !important;
+    height : 80px !important;
+
+    position: absolute;
+
+    right: 0;
+    bottom: -32px;
+
+    margin :8px;
+
+    border : 2px solid white;
 }

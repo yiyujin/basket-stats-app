@@ -16,7 +16,7 @@ export default function Login(){
   }
 
   return (
-    <>
+    <div className = "page">
       <div className = "login-page">
         <div style = { { display : "flex", flexDirection : "column", alignItems : "center", marginBottom : "40px" } }>
             {/* <img className = "login-logo" src = { process.env.PUBLIC_URL + '/logo.png' } width = "180" height = "180"/> */}
@@ -32,6 +32,6 @@ export default function Login(){
       </div>
 
       {/* <span className = "login-graphics" style = { { width : "30%", height : "50%"} }></span> */}
-    </>
+    </div>
   );
 }
