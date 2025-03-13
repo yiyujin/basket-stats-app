@@ -44,8 +44,8 @@
 }
 
 .page {
-    /* margin-left : 24px;
-    margin-right : 24px; */
+    /* height of nav */
+    padding-top : 48px;
 }
   
 .page-contents {
@@ -71,6 +71,10 @@ select {
     padding : 4px;
     
     width : 200px;
+}
+
+video {
+    width : 640px;
 }
 
 /* LOGIN */
