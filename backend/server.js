@@ -231,13 +231,13 @@ app.post("/api/query-a-database-players", async (req, res) => {
 
 //RETRIEVE A PAGE
 // get a team
-export async function retrieveAPageTeams( id ) {
+export async function retrieveAPageTeam( id ) {
   const notion = new Client({ auth: TOKEN });
   const response = await notion.pages.retrieve( { page_id: id } );
   return response;
 }
 
-app.get("/api/retrieve-a-page-teams", async (req, res) => {
+app.get("/api/retrieve-a-page-team", async (req, res) => {
   const { id } = req.query;
 
   if (!id) {
@@ -245,12 +245,35 @@ app.get("/api/retrieve-a-page-teams", async (req, res) => {
   }
 
   try {
-    const results = await retrieveAPageTeams( id );
+    const results = await retrieveAPageTeam( id );
     res.json(results);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
+
+// get a player
+export async function retrieveAPagePlayer( id ) {
+  const notion = new Client({ auth: TOKEN });
+  const response = await notion.pages.retrieve( { page_id: id } );
+  return response;
+}
+
+app.get("/api/retrieve-a-page-player", async (req, res) => {
+  const { id } = req.query;
+
+  if (!id) {
+    return res.status(400).json({ error: 'id parameter is required' });
+  }
+
+  try {
+    const results = await retrieveAPagePlayer( id );
+    res.json(results);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 
 
 // CREATE PAGE

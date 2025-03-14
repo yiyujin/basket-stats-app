@@ -11,7 +11,6 @@ export default function Team(){
     const [players, setPlayers] = useState([]);
     const [loading, setLoading] = useState(true);
 
-
     const icons = [
       { name : "Forward", url : "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQJHsPV3l1kHS1wiqQ8jrzsBQo4iOAlpqsHzQ&s", },
       { name : "Center", url : "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcScb0MARSnN12orbWvqNA17hMjw-uPCdJOl3g&s", },
@@ -27,7 +26,7 @@ export default function Team(){
 
     const fetchData = async ( id ) => {
       try {
-        const response = await fetch(`http://localhost:8000/api/retrieve-a-page-teams?id=${id}`, {
+        const response = await fetch(`http://localhost:8000/api/retrieve-a-page-team?id=${id}`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -81,9 +80,9 @@ export default function Team(){
       //   console.log(data);
       // }
 
-      if(players){
-        console.log("asd",players)
-      }
+      // if(players){
+      //   console.log("asd",players)
+      // }
 
       setLoading(false);
     }, [data]);
@@ -91,33 +90,47 @@ export default function Team(){
     return (
       <div className = "page">
 
-        <div className = "player-banner">
-          <p>{ players.length } members  ·  New York  ·  Since 2022</p>
-          <h1>{ data && data.Name?.title[0]?.plain_text }</h1>
+        <div className = "banner">
+          <div className = "img-banner-container">
+            <img className = "img-banner" src = "https://seeklogo.com/images/T/toronto-raptors-logo-456EE558CF-seeklogo.com.png"/>
+          </div>
+          
+          <div className = "banner-text">
+            <h1>{ data && data.Name?.title[0]?.plain_text }</h1>
+            <p>{ players.length } members  ·  New York  ·  Since 2022</p>
+          </div>
         </div>
 
-        <br/>
-    
-        <h2>Players :</h2>
+        
+        <div style = { { display : "flex", flexDirection : "row", gap : "8px" } }>
+          
+          <div className = "dashboard-nav-container">
+            <h3 className = "dashboard-nav">Players</h3>
+            <h3 className = "dashboard-nav">Highlights</h3>
+          </div>
 
-        <div className = "grid-container">
-          { players.map( ( item, index) => (
-            <div key = { index } className = "grid-item">
-                <img className = "profile-image" height = "200px" src = "https://i.namu.wiki/i/FJgVhMvYkDgVdPfiENuaEtgJo11sef1SpxP4jx6lmMXMQ43bgmkxR3IlmdzPKqk91V4E_zoP0pF4RWhx-qcS-Q.webp"/>
-                
-                <div style = { { display : "flex", flexDirection : "row" } }>
-                    <img className = "icon" src = { iconMap[item.properties.position.rich_text[0].plain_text] || icons[3].url }/>
-                    <h1 style = { { fontFamily : "var(--font-Barlow)"} }>{ item.properties.back_number.rich_text[0].plain_text}</h1>
-                    <div>
-                        <h3>{ item.name }</h3>
-                        <p className = "meta">{ item.properties.first_name.rich_text[0].plain_text } { item.properties.last_name.rich_text[0].plain_text }</p>
-                        <p className = "meta">{ item.properties.position.rich_text[0].plain_text }</p>
-                        <Link to = {`/player/${item.id}`}>Link</Link>
-                    </div>
+          <div style = { { flex : 1 } }>
+            { players.map( ( item, index) => (
+              <Link key = { index } to = {`/player/${item.id}`}>
+              <div style = { { display : "flex", flexDirection : "row", height : "80px", alignItems : "center", gap : "8px", backgroundColor : "var(--black4)", padding : "8px", marginBottom : "16px"} }>
+                <div className = "icon-container">
+                  <img className = "icon" src = { iconMap[item.properties.position.rich_text[0].plain_text] || icons[3].url }/>
                 </div>
+
+                <div className = "icon-container">
+                  <p className = "number" style = { { height : "100%", textAlign : "center" } }>{ item.properties.back_number.rich_text[0].plain_text}</p>
+                </div>
+              
+          
+                <h2>{ item.properties.first_name.rich_text[0].plain_text } { item.properties.last_name.rich_text[0].plain_text }</h2>
+                <p className = "meta">{ item.properties.position.rich_text[0].plain_text }</p>
+                
               </div>
-          ) )}
-        </div>     
+              </Link>
+            ) )}
+          </div>     
+
+        </div>
 
       </div>
     );

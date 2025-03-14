@@ -3,10 +3,8 @@ import { Link } from "react-router-dom"
 export default function Nav(){
     const links = [
         { href: "/", label: "Basket Stats", color : "red" },
-        { href: "/login", label: "Login", color : "red" },
-        { href: "/player", label: "Player", color : "red"  },
-        { href: "/team", label: "Team", color : "lime"  },
         { href: "/game", label: "Start Game", color : "lime"  },
+        { href: "/login", label: "Login", color : "red" },
     ];
 
     return(
