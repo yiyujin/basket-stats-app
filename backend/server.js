@@ -3,11 +3,14 @@ import express from "express";
 import AWS from "aws-sdk";
 import cors from "cors";
 import multer from "multer";
+import { Client } from "@notionhq/client";
 
+import { TOKEN, DATABASE_ID_PLAYERS, DATABASE_ID_TEAMS, DATABASE_ID_VIDEOS, DATABASE_ID_GAMES } from './config/index.js';
 import { AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION, AWS_BUCKET_NAME } from './config/index.js';
 
 const app = express();
 app.use(express.json());
+app.use(express.static('html'));
 
 app.use(
   cors({
@@ -21,13 +24,13 @@ app.use(
 const PORT = 8000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
+// *** S3 API ***
 const s3 = new AWS.S3({
   accessKeyId: AWS_ACCESS_KEY_ID,
   secretAccessKey: AWS_SECRET_ACCESS_KEY,
   region: AWS_REGION,
 });
 
-// Setup multer for file uploads
 const storage = multer.memoryStorage();
 const upload = multer({ 
   storage,
@@ -149,5 +152,156 @@ app.get("/check-bucket", async (req, res) => {
       bucket: AWS_BUCKET_NAME,
       region : AWS_REGION,
     });
+  }
+});
+
+// *** NOTION API ***
+// QUERY A DATABASE
+// get teams
+export async function queryADatabaseTeams() {
+  const notion = new Client({ auth: TOKEN });
+
+  const response = await notion.databases.query({
+    database_id: DATABASE_ID_TEAMS,
+  });
+
+  return response.results;
+}
+
+app.post("/api/query-a-database-teams", async (req, res) => {
+  try {
+    const results = await queryADatabaseTeams();
+    res.json(results);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// get players - filter by team
+export async function queryADatabasePlayers( id ) {
+  const notion = new Client({ auth: TOKEN });
+
+  const response = await notion.databases.query({
+    database_id: DATABASE_ID_PLAYERS,
+    filter: {
+      and: [
+        {
+          property: "Status",
+          select: {
+            equals: "Active",
+          },
+        },
+        {
+          property: "Teams",
+          relation: {
+            contains: id
+          }
+        }
+      ],
+    },
+    sorts: [
+      {
+        property: "Name",
+        direction: "ascending",
+      },
+    ],
+  });
+
+  return response.results;
+}
+
+app.post("/api/query-a-database-players", async (req, res) => {
+  try {
+    const { id } = req.body;
+
+    if (!id) {
+      return res.status(400).json({ error: "Missing required 'id' field" });
+    }
+
+
+    const results = await queryADatabasePlayers(id);
+    res.json(results);
+  } catch (error) {
+    console.error("Error querying Notion database:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+
+
+//RETRIEVE A PAGE
+// get a team
+export async function retrieveAPageTeams( id ) {
+  const notion = new Client({ auth: TOKEN });
+  const response = await notion.pages.retrieve( { page_id: id } );
+  return response;
+}
+
+app.get("/api/retrieve-a-page-teams", async (req, res) => {
+  const { id } = req.query;
+
+  if (!id) {
+    return res.status(400).json({ error: 'id parameter is required' });
+  }
+
+  try {
+    const results = await retrieveAPageTeams( id );
+    res.json(results);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+
+// CREATE PAGE
+// https://developers.notion.com/reference/post-page
+export async function createAPage( name, url ) {
+  const notion = new Client({ auth: TOKEN });
+
+  try {
+    const response = await notion.pages.create({
+      parent: {
+        type: "database_id",
+        database_id: DATABASE_ID_VIDEOS,
+      },
+      properties: {
+        Name: {
+          title: [
+            {
+              text: {
+                content: name,
+              },
+            },
+          ],
+        },
+        url: {
+          rich_text: [
+            {
+              text: {
+                content: url,
+              },
+            },
+          ],
+        },
+      },
+    });
+
+    // console.log("Page created successfully:", response);
+    return response;
+  } catch (error) {
+    console.error("Error creating page in Notion:", error.message);
+    throw error;
+  }
+}
+
+
+app.post("/api/create-a-page", async (req, res) => {
+  const { name, url } = req.body; // Extract name and url from the request body.
+
+  try {
+    const result = await createAPage(name, url); // Call the createAPage function.
+    res.status(200).json(result); // Send the response back to the client.
+  } catch (error) {
+    res.status(500).json({ error: error.message }); // Handle errors and send a proper response.
   }
 });

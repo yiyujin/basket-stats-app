@@ -97,6 +97,9 @@ export default function RecordingVideo(){
           }
     
           setUploadedVideoUrl(data.fileUrl);
+
+          await postUrl("Name of Video", data.fileUrl);
+
           alert("Video uploaded successfully!");
         } catch (error) {
           console.error("Error during upload:", error);
@@ -130,7 +133,31 @@ export default function RecordingVideo(){
       } catch (error) {
         console.error("Error fetching video URL:", error);
       }
-    };  
+    };
+
+    // POST Url to Database
+    const postUrl = async ( name, url ) => {
+      try {
+        const response = await fetch("http://localhost:8000/api/create-a-page", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+              name,
+              url
+          }),
+        });
+  
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+  
+        console.log("Url is posted to DB successfully");
+      } catch (error) {
+        console.error("Error posting url to DB:", error.message);
+      }
+    };
 
     return(
         <div>
@@ -138,6 +165,8 @@ export default function RecordingVideo(){
             <button onClick = { endRecording } disabled = { !recording }>End Recording</button>
             <button onClick = { uploadRecording } disabled = { !videoURL || uploading }>{ uploading ? "Uploading..." : "Upload Video" }</button>
             <button onClick = { getVideo } disabled = {!uploadedVideoUrl}>Get Uploaded Video</button>
+
+            <button onClick = { () => postUrl("Name test", "url test") }>Upload to DB Test</button>
 
             { recording ? `${duration}s` : "" }
 

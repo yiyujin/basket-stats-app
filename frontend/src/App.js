@@ -18,12 +18,17 @@ export default function App() {
       <Nav/>
       
       <Routes>
+        
         <Route path = "/login" element = { <Login/>}/>
+
         <Route path = "/" element = { <Home/>}/>
-        {/* <Route path = "/player:id" element = { <Player/>}/> */}
-        <Route path = "/player" element = { <Player/>}/>
-        <Route path = "/team" element = { <Team/>}/>
+
+        <Route path = "/player/:id" element = { <Player/>}/>
+
+        <Route path = "/team/:id" element = { <Team/>}/>
+
         <Route path = "/game" element = { <Game/>}/>
+
       </Routes>
     </div>
   );
