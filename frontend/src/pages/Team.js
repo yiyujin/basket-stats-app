@@ -15,6 +15,7 @@ export default function Team(){
     const [data, setData] = useState([]);
     const [teamColor, setTeamColor] = useState([]);
     const [players, setPlayers] = useState([]);
+    const [games, setGames] = useState([]);
     const [loading, setLoading] = useState(true);
 
     const icons = [
@@ -74,10 +75,35 @@ export default function Team(){
         console.error("Error fetching data:", error.message);
       }
     };
+
+    const fetchGames = async ( id ) => {        
+      try {
+        const response = await fetch("http://localhost:8000/api/query-a-database-games", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            id
+          })
+        });
+  
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+  
+        const result = await response.json();
+
+        setGames(result);
+      } catch (error) {
+        console.error("Error fetching data:", error.message);
+      }
+  };
           
     useEffect(() => {
       fetchData(id);
       fetchPlayers(id);
+      fetchGames(id);
     }, []);
 
     useEffect( () => {
@@ -91,6 +117,51 @@ export default function Team(){
 
       setLoading(false);
     }, [data]);
+
+    const highlights = [
+      {
+          title : "DBK's 3pt Play",
+          players : "DBK, DO",
+          scorer : "DBK",
+          video_id : "jfgWojrwE74",
+          link : "https://www.youtube.com/embed/jfgWojrwE74?si=8Dha-oIF4lXlbRcJ"
+      },
+      {
+          title : "DBK's 2pt Play",
+          players : "DBK, Rob",
+          scorer : "DBK",
+          video_id : "s-IwazC6GXw",
+          link : "https://www.youtube.com/embed/s-IwazC6GXw?si=PQavN-WZl5_KOWlz"
+      },
+      {
+          title : "DBK's Steal",
+          players : "DBK",
+          scorer : "DBK",
+          video_id : "LsLTfRKGfno",
+          link : "https://www.youtube.com/embed/LsLTfRKGfno?si=KMON-mUNmTE3BXda"
+      },
+      {
+          title : "DBK's 2pt Play",
+          players : "DBK, Rob",
+          scorer : "DBK",
+          video_id : "X8fe76BYjkk",
+          link : "https://www.youtube.com/embed/X8fe76BYjkk?si=Ng7O3QD1-LfgqHQZ"
+      },
+      {
+          title : "DBK's 2pt Play",
+          players : "DBK, Rob",
+          scorer : "DBK",
+          video_id : "7ftWRDfKXmg",
+          link : "https://www.youtube.com/embed/X8fe76BYjkk?si=Ng7O3QD1-LfgqHQZ"
+      },
+      {
+          title : "DBK's 2pt Play",
+          players : "DBK",
+          scorer : "DBK",
+          video_id: "91MrognEtf4",
+          link : "https://www.youtube.com/embed/7ftWRDfKXmg?si=45lIMOAdqInXCmIh"
+      }
+  ]
 
     return (
       <div className = "page">
@@ -117,11 +188,30 @@ export default function Team(){
 
           <div style = { { flex : 1 } }>
 
-            <TeamDivider text = "Games" length = ""/>
-            <GameListItem id = { id } icon = { data.icon?.file.url ? data.icon?.file.url : process.env.PUBLIC_URL + '/logo.png' } color = { teamColor }/>
+            <TeamDivider text = "Games" length = { games.length }/>
+            <GameListItem id = { id } icon = { data.icon?.file.url ? data.icon?.file.url : process.env.PUBLIC_URL + '/logo.png' } color = { teamColor } data = { games }/>
 
             <TeamDivider text = "Highlights" length = ""/>
-            {/* VIDEOS HERE */}
+            
+            <div className = "grid-container">
+              { highlights.map( ( item, index) => (
+                      <div key = { index } className = "grid-item">
+                          
+
+                          <div className = "highlight-container">
+                              {/* <img src = { process.env.PUBLIC_URL + '/graphics/thumbnail.png' }/> */}
+                              <VideoModal videoId = { item.video_id }/>
+
+                              <img className = "highlight-thumbnail" src = "https://i.namu.wiki/i/FJgVhMvYkDgVdPfiENuaEtgJo11sef1SpxP4jx6lmMXMQ43bgmkxR3IlmdzPKqk91V4E_zoP0pF4RWhx-qcS-Q.webp"/>
+                          </div>
+
+                          <div className = "highlight-text">
+                              <h3>{ item.title }</h3>
+                              <p className = "meta">{ item.players }</p>
+                          </div>
+                      </div>
+                  ) )}
+            </div>
             
             <TeamDivider text = "Players" length = { players.length }/>
             { players.map( ( item, index) => (

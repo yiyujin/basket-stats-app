@@ -1,5 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
+import Twemoji from 'react-twemoji';
+import twemoji from 'twemoji';
 
 export default function Home(){
     const [data, setData] = useState([]);
@@ -32,8 +34,7 @@ export default function Home(){
 
     return(
         <div className = "page">
-            <h1>Basket Stats</h1>
-            
+            <h1>Basket Stats ⚽️ 🏀</h1>
             <p>Registered Teams ({ data.length }) :</p>
 
             { data.map( ( item ) => (

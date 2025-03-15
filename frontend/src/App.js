@@ -1,5 +1,6 @@
 import './App.css';
 import { Routes, Route } from "react-router-dom";
+import Twemoji from 'react-twemoji';
 
 // COMPONENTS
 import Nav from './components/Nav';
@@ -13,23 +14,25 @@ import Game from './pages/Game';
 
 export default function App() {
   return (
-    <div className = "App">
+    <Twemoji options = { { className: 'twemoji' } }>
+      <div className = "App">
 
-      <Nav/>
-      
-      <Routes>
-        
-        <Route path = "/login" element = { <Login/>}/>
+        <Nav/>
+    
+          <Routes>
+            
+            <Route path = "/login" element = { <Login/>}/>
 
-        <Route path = "/" element = { <Home/>}/>
+            <Route path = "/" element = { <Home/>}/>
 
-        <Route path = "/player/:id" element = { <Player/>}/>
+            <Route path = "/player/:id" element = { <Player/>}/>
 
-        <Route path = "/team/:id" element = { <Team/>}/>
+            <Route path = "/team/:id" element = { <Team/>}/>
 
-        <Route path = "/game" element = { <Game/>}/>
+            <Route path = "/game" element = { <Game/>}/>
 
-      </Routes>
-    </div>
+          </Routes>
+      </div>
+    </Twemoji>
   );
 }

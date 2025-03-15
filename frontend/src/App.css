@@ -47,7 +47,7 @@
 
     line-height : 140%;
 
-    box-shadow : 0 0 1px rgba(0, 255, 255, 1.0);
+    /* box-shadow : 0 0 1px rgba(0, 255, 255, 1.0); */
 }
 
 a {
@@ -337,12 +337,10 @@ input:focus, button:focus {
 .chip {
     font-family : var(--font-Barlow);
     font-weight : 800;
-    font-size : var(--font-size-small);
+    font-size : var(--font-size-tiny);
     font-style : italic;
 
     padding : 0px 16px;
-
-    border-radius : var(--br);
 }
 
 /* NAV */
@@ -486,3 +484,10 @@ input:focus, button:focus {
     width: 100%;
     height: 100%;
   }
+
+  /* EMOJI */
+img.twemoji {
+  height: 20px !important;
+  width: 20px !important;
+  display: inline-block !important;
+}

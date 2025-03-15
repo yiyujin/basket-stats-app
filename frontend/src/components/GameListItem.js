@@ -1,42 +1,10 @@
-import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { ArrowForward, Stadium, EventAvailable, SportsBasketball } from '@mui/icons-material';
 
 import IconButton from "./IconButton";
 import Chip from "./Chip";
 
-export default function GameListItem( { id, icon, color } ){
-    const [data, setData] = useState([]);
-
-    const fetchData = async ( id ) => {        
-        try {
-          const response = await fetch("http://localhost:8000/api/query-a-database-games", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              id
-            })
-          });
-    
-          if (!response.ok) {
-            throw new Error("Network response was not ok");
-          }
-    
-          const result = await response.json();
-
-          console.log('games', result);
-          setData(result);
-        } catch (error) {
-          console.error("Error fetching data:", error.message);
-        }
-    };
-
-    useEffect( () => {
-        fetchData(id);
-    }, []);
-
+export default function GameListItem( { id, icon, color, data } ){
     return(
         <>
             { data && data.map( ( item, index ) => (
@@ -46,16 +14,19 @@ export default function GameListItem( { id, icon, color } ){
                     
                         {/* SCORE */}
                         <div style = { { display : "flex", flexDirection : "row", gap : "4px",alignItems : "center", marginRight : "40px" } }>
-                            { item.properties.result.select?.name === "win" ?
-                                <Chip text = { item.properties.result.select?.name } color = { color }/>
-                            : null }
                             
                             <div className = "icon-container">
                                 <img className = "icon" src = { icon }/>
                             </div>
 
-                            <div style = { { backgroundColor : "var(--black8)", padding : "0px 16px"}}>
-                                <p className = "number">{ item.properties.score.rich_text[0]?.plain_text || "TBD" }</p>
+                            <div>
+                                <div style = { { backgroundColor : "var(--black8)", padding : "0px 16px"}}>
+                                    <p className = "number">{ item.properties.score.rich_text[0]?.plain_text || "TBD" }</p>
+                                </div>
+
+                                { item.properties.result.select?.name === "win" ?
+                                    <Chip text = { item.properties.result.select?.name } color = { color }/>
+                                : null }
                             </div>
 
                             <div className = "icon-container">
