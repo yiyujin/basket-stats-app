@@ -31,7 +31,7 @@ export default function Home(){
   }, []);
 
     return(
-        <div>
+        <div className = "page">
             <h1>Basket Stats</h1>
             
             <p>Registered Teams ({ data.length }) :</p>

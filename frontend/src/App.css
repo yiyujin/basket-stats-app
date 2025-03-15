@@ -1,13 +1,16 @@
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
 
 :root {
     --font-size-huge : 40px;
     --font-size-large : 20px;
     --font-size-medium : 18px;
     --font-size-small : 14px;
+    --font-size-tiny : 12px;
 
     /* weight : 400 - 900 */
     --font-Orbitron : 'Orbitron'; 
+    --font-Barlow : 'Barlow';
 
     --radius : 4px;
 
@@ -44,7 +47,7 @@
 
     line-height : 140%;
 
-    box-shadow : 0 0 1px rgba(0, 255, 255, 1.0);
+    /* box-shadow : 0 0 1px rgba(0, 255, 255, 1.0); */
 }
 
 a {
@@ -76,13 +79,16 @@ hr {
     margin-bottom : 40px;
 }
 
-h1, h2, h3, p {
-    padding-top : 8px;
-    /* padding-bottom : 8px; */
+h1 {
+    font-size : var(--font-size-large);
+}
+
+h2 {
+    font-size : var(--font-size-medium);
 }
 
 h3 {
-    font-size : var(--font-size-medium);
+    font-size : var(--font-size-small);
 }
 
 select {
@@ -222,19 +228,25 @@ input:focus, button:focus {
 
 .banner h1 {
     font-size : var(--font-size-huge);
+    font-family: var(--font-Barlow);
 }
 
 .banner-text {
     flex : 1;
+    height : 100%;
 
     background-color: var(--pt);
     color : white;
+
+    display : flex;
+    flex-direction: column;
+    justify-content: center;
 
     padding : 12px;
 }
 
 .img-banner-container {
-    width : 120px;
+    width : 80px;
     height : 120px;
 
     border-radius : var(--br);
@@ -259,7 +271,11 @@ input:focus, button:focus {
     flex-direction: column;
     gap : 4px;
 
-    /* position : sticky; */
+    /* stick */
+    /* height of nav + 8px */
+    top : 56px;
+    position : sticky;
+    height : 100%;
 }
 
 .dashboard-nav {
@@ -273,6 +289,8 @@ input:focus, button:focus {
     display : flex;
 
     padding : 8px;
+
+    align-items: center;
 }
 
 /* PLAYER COMPONENT */
@@ -315,7 +333,7 @@ input:focus, button:focus {
 
 .meta {
     color : var(--black40);
-    font-size : var(--font-size-small);
+    font-size : var(--font-size-tiny);
 }
 
 /* NAV */
@@ -342,14 +360,30 @@ input:focus, button:focus {
     padding-top : 0px;
 }
 
+.icon-button {
+    width : 40px;
+    height : 40px;
+
+    display : flex;
+    align-items : center;
+    justify-content : center;
+
+    background-color: transparent;
+    /* border : 1px solid var(--black8); */
+}
+
+.icon-button:hover {
+    background-color: var(--black16);
+}
+
 
 .icon-container {
     width : 40px;
     height : 40px;
 
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    display : flex;
+    align-items : center;
+    justify-content : center;
     /* text-align: center; */
     background-color: var(--black2);
 }
@@ -362,6 +396,8 @@ input:focus, button:focus {
 
 .number {
     /* font-family: var(--font-Orbitron); */
+    font-family: var(--font-Barlow);
+    font-weight : 800;
     font-size : var(--font-size-medium);
 }
 

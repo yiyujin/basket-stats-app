@@ -5,7 +5,7 @@ import cors from "cors";
 import multer from "multer";
 import { Client } from "@notionhq/client";
 
-import { TOKEN, DATABASE_ID_PLAYERS, DATABASE_ID_TEAMS, DATABASE_ID_VIDEOS, DATABASE_ID_GAMES } from './config/index.js';
+import { TOKEN, DATABASE_ID_PLAYERS, DATABASE_ID_TEAMS, DATABASE_ID_VIDEOS, DATABASE_ID_GAMES, DATABASE_ID_SPORTS, DATABASE_ID_POSITIONS } from './config/index.js';
 import { AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION, AWS_BUCKET_NAME } from './config/index.js';
 
 const app = express();
@@ -220,6 +220,56 @@ app.post("/api/query-a-database-players", async (req, res) => {
 
 
     const results = await queryADatabasePlayers(id);
+    res.json(results);
+  } catch (error) {
+    console.error("Error querying Notion database:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// get games - filter by team
+export async function queryADatabaseGames( id ) {
+  const notion = new Client({ auth: TOKEN });
+
+  const response = await notion.databases.query({
+    database_id: DATABASE_ID_GAMES,
+    filter: {
+      and: [
+        {
+          property: "status",
+          select: {
+            equals: "Active",
+          },
+        },
+        {
+          property: "team",
+          relation: {
+            contains: id
+          }
+        }
+      ],
+    },
+    sorts: [
+      {
+        property: "Date",
+        direction: "descending",
+      },
+    ],
+  });
+
+  return response.results;
+}
+
+app.post("/api/query-a-database-games", async (req, res) => {
+  try {
+    const { id } = req.body;
+
+    if (!id) {
+      return res.status(400).json({ error: "Missing required 'id' field" });
+    }
+
+
+    const results = await queryADatabaseGames(id);
     res.json(results);
   } catch (error) {
     console.error("Error querying Notion database:", error);

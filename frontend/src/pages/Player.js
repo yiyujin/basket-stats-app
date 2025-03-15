@@ -38,7 +38,7 @@ export default function Player(){
           <div>
             <Link to = { `/team/${data.Teams?.relation[0].id}`} >{ data && data.Rollup?.rollup.array[0].title[0].plain_text }</Link>
 
-            { data && data.back_number?.rich_text[0].plain_text }  ·  { data && data.position?.rich_text[0].plain_text }
+            {/* { data && data.back_number?.rich_text[0].plain_text }  ·  { data && data.position?.relation[0].plain_text } */}
             
             </div>
           <h1>{ data && data.Name?.title[0].plain_text }</h1>
