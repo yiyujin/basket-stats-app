@@ -201,7 +201,7 @@ export async function queryADatabasePlayers( id ) {
     },
     sorts: [
       {
-        property: "Name",
+        property: "order",
         direction: "ascending",
       },
     ],
@@ -217,7 +217,6 @@ app.post("/api/query-a-database-players", async (req, res) => {
     if (!id) {
       return res.status(400).json({ error: "Missing required 'id' field" });
     }
-
 
     const results = await queryADatabasePlayers(id);
     res.json(results);

@@ -47,7 +47,7 @@
 
     line-height : 140%;
 
-    /* box-shadow : 0 0 1px rgba(0, 255, 255, 1.0); */
+    box-shadow : 0 0 1px rgba(0, 255, 255, 1.0);
 }
 
 a {
@@ -74,9 +74,7 @@ div {
 }
 
 hr {
-    border : 1px solid var(--black4);
-    margin-top : 40px;
-    margin-bottom : 40px;
+    border : 0.5px solid var(--black8);
 }
 
 h1 {
@@ -336,6 +334,17 @@ input:focus, button:focus {
     font-size : var(--font-size-tiny);
 }
 
+.chip {
+    font-family : var(--font-Barlow);
+    font-weight : 800;
+    font-size : var(--font-size-small);
+    font-style : italic;
+
+    padding : 0px 16px;
+
+    border-radius : var(--br);
+}
+
 /* NAV */
 .nav {
     width : 100%;
@@ -385,7 +394,7 @@ input:focus, button:focus {
     align-items : center;
     justify-content : center;
     /* text-align: center; */
-    background-color: var(--black2);
+    /* background-color: var(--black2); */
 }
 
 .icon {

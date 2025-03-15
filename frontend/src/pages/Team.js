@@ -5,12 +5,15 @@ import VideoModal from "../components/VideoModal";
 import Loading from "../components/Loading";
 import IconButton from "../components/IconButton";
 import GameListItem from "../components/GameListItem";
+import TeamDivider from "../components/TeamDivider";
+
 import { ArrowForward } from '@mui/icons-material';
 
 export default function Team(){
     const { id } = useParams();
 
     const [data, setData] = useState([]);
+    const [teamColor, setTeamColor] = useState([]);
     const [players, setPlayers] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -43,6 +46,7 @@ export default function Team(){
         const result = await response.json();
 
         setData(result);
+        setTeamColor(result.properties?.color.rich_text[0].plain_text || 'transparent');
       } catch (error) {
         console.error("Error fetching data:", error.message);
       }
@@ -96,7 +100,7 @@ export default function Team(){
             <img className = "img-banner" src = { data.icon?.file.url ? data.icon?.file.url : process.env.PUBLIC_URL + '/logo.png' }/>
           </div>
           
-          <div className = "banner-text">
+          <div className = "banner-text" style = { { backgroundColor: teamColor }}>
             <h1>{ data && data.properties?.Name.title[0].plain_text }</h1>
             <p>{ players.length } members  ·  New York  ·  Since 2022</p>
           </div>
@@ -108,29 +112,22 @@ export default function Team(){
             <h3 className = "dashboard-nav">Games</h3>
             <h3 className = "dashboard-nav">Highlights</h3>
             <h3 className = "dashboard-nav">Players</h3>
+            <h3 className = "dashboard-nav">Gallery</h3>
           </div>
 
           <div style = { { flex : 1 } }>
 
+            <TeamDivider text = "Games" length = ""/>
+            <GameListItem id = { id } icon = { data.icon?.file.url ? data.icon?.file.url : process.env.PUBLIC_URL + '/logo.png' } color = { teamColor }/>
 
-            <div style = { { display : "flex", flexDirection : "row" }}>
-              <h2 style = { { flex : 1 } }>Games</h2>
-
-              <select style = { { marginBottom : "8px" } }>
-                <option value = "Most Played Games">Most Played Games</option>
-                <option value="volvo">Volvo</option>
-              </select>
-            </div>
-
-            <GameListItem id = { id } icon = { data.icon?.file.url ? data.icon?.file.url : process.env.PUBLIC_URL + '/logo.png' }/>
-
-            <h2>Highlights</h2>
-
-            <h2>Players ({ players.length })</h2>
+            <TeamDivider text = "Highlights" length = ""/>
+            {/* VIDEOS HERE */}
+            
+            <TeamDivider text = "Players" length = { players.length }/>
             { players.map( ( item, index) => (
               <div style = { { display : "flex", width : "100%", height : "80px", alignItems : "center", backgroundColor : "var(--black4)", padding : "4px", marginBottom : "8px"} }>
                 
-                <div style = { { flex : 1, display : "flex", flexDirection : "row", gap : "8px",alignItems : "center" } }>
+                <div style = { { flex : 1, display : "flex", flexDirection : "row", gap : "0px",alignItems : "center" } }>
                   <div className = "icon-container">
                     <img className = "icon" src = { iconMap[item.properties.position_rollup?.rollup.array[0].title[0].plain_text] }/>
                   </div>
@@ -139,7 +136,7 @@ export default function Team(){
                     <p className = "number">{ item.properties.back_number.rich_text[0].plain_text }</p>
                   </div>
                 
-                  <h2>{ item.properties.first_name.rich_text[0].plain_text } { item.properties.last_name.rich_text[0].plain_text }</h2>
+                  <h2 style = { { marginRight : "8px" } }>{ item.properties.first_name.rich_text[0].plain_text } { item.properties.last_name.rich_text[0].plain_text }</h2>
                   <p className = "meta">{ item.properties.Name.title[0].plain_text } · { item.properties.position_rollup?.rollup.array[0].title[0].plain_text }</p>
                   
                 </div>

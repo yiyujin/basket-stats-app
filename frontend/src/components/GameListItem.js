@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom"
-import IconButton from "./IconButton"
+import { Link } from "react-router-dom";
 import { ArrowForward, Stadium, EventAvailable, SportsBasketball } from '@mui/icons-material';
 
-export default function GameListItem( { id, icon } ){
+import IconButton from "./IconButton";
+import Chip from "./Chip";
+
+export default function GameListItem( { id, icon, color } ){
     const [data, setData] = useState([]);
 
     const fetchData = async ( id ) => {        
@@ -24,7 +26,7 @@ export default function GameListItem( { id, icon } ){
     
           const result = await response.json();
 
-        //   console.log('games', result);
+          console.log('games', result);
           setData(result);
         } catch (error) {
           console.error("Error fetching data:", error.message);
@@ -37,17 +39,22 @@ export default function GameListItem( { id, icon } ){
 
     return(
         <>
-            { data.map( ( item, index ) => (
+            { data && data.map( ( item, index ) => (
                 <div key = { index } style = { { display : "flex", width : "100%", height : "80px", alignItems : "center", backgroundColor : "var(--black4)", padding : "8px", marginBottom : "16px"} }>
                     
-                    <div style = { { flex : 1, display : "flex", flexDirection : "row", gap : "40px",alignItems : "center" } }>
+                    <div style = { { flex : 1, display : "flex", flexDirection : "row", alignItems : "center" } }>
+                    
                         {/* SCORE */}
-                        <div style = { { display : "flex", flexDirection : "row", gap : "4px",alignItems : "center" } }>
+                        <div style = { { display : "flex", flexDirection : "row", gap : "4px",alignItems : "center", marginRight : "40px" } }>
+                            { item.properties.result.select?.name === "win" ?
+                                <Chip text = { item.properties.result.select?.name } color = { color }/>
+                            : null }
+                            
                             <div className = "icon-container">
                                 <img className = "icon" src = { icon }/>
                             </div>
 
-                            <div style = { { backgroundColor : "var(--black8)", padding : "0px 10px"}}>
+                            <div style = { { backgroundColor : "var(--black8)", padding : "0px 16px"}}>
                                 <p className = "number">{ item.properties.score.rich_text[0]?.plain_text || "TBD" }</p>
                             </div>
 
@@ -57,17 +64,18 @@ export default function GameListItem( { id, icon } ){
                         </div>
 
                         {/* DATE */}
-                        <div style = { { display : "flex", flexDirection : "row", gap : "4px" } }>
-                            <EventAvailable fontSize = "24px"/>
+                        <div style = { { display : "flex", flexDirection : "row", gap : "4px", marginRight : "40px", alignItems : "center" } }>
+                            <EventAvailable style = { { fontSize: '12px' } }/>
                             <p className = "meta">{ item.properties.Date.date.start }</p>
                         </div>
 
 
                         {/* VENUE */}
-                        <div style = { { display : "flex", flexDirection : "row", gap : "4px" } }>
-                            <Stadium fontSize = "24px"/>
+                        <div style = { { display : "flex", flexDirection : "row", gap : "4px", alignItems : "center" } }>
+                            <Stadium style = { { fontSize: '12px' } }/>
                             <p className = "meta">{ item.properties.venue.rich_text[0]?.plain_text || "TBD" }</p>
                         </div>
+
                     </div>    
 
                     <Link to = {`/game`}>
