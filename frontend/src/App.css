@@ -47,7 +47,7 @@
 
     line-height : 140%;
 
-    /* box-shadow : 0 0 1px rgba(0, 255, 255, 1.0); */
+    box-shadow : 0 0 1px rgba(0, 255, 255, 1.0);
 }
 
 a {
@@ -56,8 +56,8 @@ a {
 }
 
 .page {
-    /* height of nav 48px*/
-    padding-top : 48px;
+    /* height of nav 48px + */
+    padding-top : 80px;
 
     margin-left : 40px;
     margin-right : 40px;
@@ -233,7 +233,7 @@ input:focus, button:focus {
     flex : 1;
     height : 100%;
 
-    background-color: var(--pt);
+    background-color: var(--black16);
     color : white;
 
     display : flex;
@@ -396,8 +396,8 @@ input:focus, button:focus {
 }
 
 .icon {
-    width : 14px !important;
-    height : 14px !important;
+    width : 16px !important;
+    height : 16px !important;
     object-fit: contain;
 }
 

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef } from "react";
 
 export default function RecordingVideo(){
     const [recording, setRecording] = useState(false);
@@ -17,6 +17,9 @@ export default function RecordingVideo(){
     const mediaRecorderRef = useRef(null);
     const chunksRef = useRef([]);
     const timerRef = useRef(null);
+
+    const [timestamps, setTimestamps] = useState([]); // ✅ State for timestamps
+    const [timestampData, setTimestampData] = useState(null); // ✅ JSON output state
 
     const startRecording = async () => {
         try {
@@ -44,6 +47,8 @@ export default function RecordingVideo(){
 
             mediaRecorder.start(1000);
             setRecording(true);
+            setTimestamps([]); // reset
+            setTimestampData(null); //reset
 
             setDuration(0);
             timerRef.current = setInterval(() => {
@@ -159,6 +164,29 @@ export default function RecordingVideo(){
       }
     };
 
+    const logTimestamp = () => {
+      if (recording) {
+          setTimestamps((prev) => [...prev, duration]); // ✅ Use duration state
+          console.log(`📍 Timestamp: ${duration}s`);
+      }
+  };
+
+  const uploadTimestamp = () => {
+    if (timestamps.length === 0) {
+        console.warn("No timestamps to upload!");
+        return;
+    }
+
+    const jsonData = {
+        video_name: "Recording",
+        duration: duration, // Total duration of recording
+        timestamps: timestamps.map(time => ({ timestamp: time })) // Convert to JSON structure
+    };
+
+    setTimestampData(jsonData); // ✅ Save JSON to state
+    console.log("jsonData:", jsonData);
+};
+
     return(
         <div>
             <button onClick = { startRecording }>Start Recording</button>
@@ -168,14 +196,26 @@ export default function RecordingVideo(){
 
             <button onClick = { () => postUrl("Name test", "url test") }>Upload to DB Test</button>
 
+            <button onClick={logTimestamp} disabled={!recording}>Log Timestamp</button>
+            <button onClick={uploadTimestamp} disabled={timestamps.length === 0}>Upload Timestamp</button>
+
             { recording ? `${duration}s` : "" }
+
+            <h3>Timestamps:</h3>
+                {timestamps.map((time, index) => (
+                    <p key={index}>⏱ {time}s</p>
+                ))}
 
             { blobData ? `size : ${blobData.size}bytes` : "" }
 
             <div>
+                {/* LIVE VIDEO */}
                 <video className = "liveVideo" ref = { videoRef }  style = { { display: videoURL && !recording ? 'none' : 'block' } }  autoPlay playsInline muted width = "100%"/>
-                { videoURL && !recording &&  <video className = "playbackVideo" src = { videoURL } controls width="100%"/> }
 
+                {/* PLAYER VIDEO */}
+                { videoURL && !recording &&  <video className = "playbackVideo" src = { videoURL } controls width = "100%"/> }
+
+                {/* FETCHED VIDEO FROM SERVER */}
                 { fetchedVideoUrl && <video className = "fetchedVideo" src = { fetchedVideoUrl } controls/> }
             </div>
         </div>

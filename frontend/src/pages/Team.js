@@ -115,8 +115,10 @@ export default function Team(){
       //   console.log("asd",players)
       // }
 
-      setLoading(false);
-    }, [data]);
+      if( data && teamColor ){
+        setLoading(false);
+      }
+    }, [ data, teamColor ]);
 
     const highlights = [
       {
@@ -164,16 +166,27 @@ export default function Team(){
   ]
 
     return (
+      <>
+      { loading ? <Loading/> : 
+      
       <div className = "page">
-
         <div className = "banner">
           <div className = "img-banner-container">
-            <img className = "img-banner" src = { data.icon?.file.url ? data.icon?.file.url : process.env.PUBLIC_URL + '/logo.png' }/>
+            <img className = "img-banner" src = { data.icon?.file.url ? data.icon?.file.url : "" }/>
           </div>
           
-          <div className = "banner-text" style = { { backgroundColor: teamColor }}>
-            <h1>{ data && data.properties?.Name.title[0].plain_text }</h1>
-            <p>{ players.length } members  ·  New York  ·  Since 2022</p>
+          <div className = "banner-text" style = { { backgroundColor: teamColor, display : "flex", flexDirection : "row", alignItems : "center" }}>
+            <div style = { { flex : 1 } }>
+              <h1>{ data && data.properties?.Name.title[0].plain_text }</h1>
+              <p>{ players.length } members  ·  New York  ·  Since 2022</p>
+            </div>
+
+            
+            <Link to = {`/game`} state = { { team : data, players : players } }>
+              Start Game
+            </Link>
+            
+
           </div>
         </div>
         
@@ -189,7 +202,7 @@ export default function Team(){
           <div style = { { flex : 1 } }>
 
             <TeamDivider text = "Games" length = { games.length }/>
-            <GameListItem id = { id } icon = { data.icon?.file.url ? data.icon?.file.url : process.env.PUBLIC_URL + '/logo.png' } color = { teamColor } data = { games }/>
+            <GameListItem id = { id } team = { data.properties?.Name.title[0].plain_text } icon = { data.icon?.file.url ? data.icon?.file.url : process.env.PUBLIC_URL + '/logo.png' } color = { teamColor } data = { games }/>
 
             <TeamDivider text = "Highlights" length = ""/>
             
@@ -242,5 +255,7 @@ export default function Team(){
         </div>
 
       </div>
+}
+      </>
     );
 }

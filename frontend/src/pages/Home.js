@@ -1,7 +1,5 @@
 import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
-import Twemoji from 'react-twemoji';
-import twemoji from 'twemoji';
 
 export default function Home(){
     const [data, setData] = useState([]);

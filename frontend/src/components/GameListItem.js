@@ -4,23 +4,22 @@ import { ArrowForward, Stadium, EventAvailable, SportsBasketball } from '@mui/ic
 import IconButton from "./IconButton";
 import Chip from "./Chip";
 
-export default function GameListItem( { id, icon, color, data } ){
+export default function GameListItem( { id, team, icon, color, data } ){
     return(
         <>
             { data && data.map( ( item, index ) => (
-                <div key = { index } style = { { display : "flex", width : "100%", height : "80px", alignItems : "center", backgroundColor : "var(--black4)", padding : "8px", marginBottom : "16px"} }>
+                <div key = { index } style = { { fontFamily : "var(--font-Barlow)", fontWeight : "600", display : "flex", width : "100%", height : "80px", alignItems : "center", backgroundColor : "var(--black4)", marginBottom : "16px"} }>
                     
-                    <div style = { { flex : 1, display : "flex", flexDirection : "row", alignItems : "center" } }>
+                    <div style = { { flex : 1, display : "flex", flexDirection : "row", alignItems : "center", padding : "16px", gap : "40px" } }>
                     
                         {/* SCORE */}
-                        <div style = { { display : "flex", flexDirection : "row", gap : "4px",alignItems : "center", marginRight : "40px" } }>
+                        <div style = { { width : "440px", display : "flex", flexDirection : "row", gap : "8px", alignItems : "center" } }>
                             
-                            <div className = "icon-container">
-                                <img className = "icon" src = { icon }/>
-                            </div>
+                            { item.properties.team_opponent ? <p>{ team }</p> : "Team B" }
+                            <img className = "icon" src = { icon }/>
 
-                            <div>
-                                <div style = { { backgroundColor : "var(--black8)", padding : "0px 16px"}}>
+                            <div style = { { width : "72px", margin : "0px 8px" } }>
+                                <div style = { { backgroundColor : "var(--black8)", textAlign : "center" }}>
                                     <p className = "number">{ item.properties.score.rich_text[0]?.plain_text || "TBD" }</p>
                                 </div>
 
@@ -28,14 +27,15 @@ export default function GameListItem( { id, icon, color, data } ){
                                     <Chip text = { item.properties.result.select?.name } color = { color }/>
                                 : null }
                             </div>
+                                
+                            
+                            <SportsBasketball style = { { fontSize : "24px" }}/>
+                            { item.properties.team_opponent ? <p>{ item.properties.team_opponent.rich_text[0]?.plain_text }</p> : "Team B" }
 
-                            <div className = "icon-container">
-                                <IconButton icon = { SportsBasketball }/>
-                            </div>
                         </div>
 
                         {/* DATE */}
-                        <div style = { { display : "flex", flexDirection : "row", gap : "4px", marginRight : "40px", alignItems : "center" } }>
+                        <div style = { { display : "flex", flexDirection : "row", gap : "4px", alignItems : "center" } }>
                             <EventAvailable style = { { fontSize: '12px' } }/>
                             <p className = "meta">{ item.properties.Date.date.start }</p>
                         </div>
@@ -44,7 +44,7 @@ export default function GameListItem( { id, icon, color, data } ){
                         {/* VENUE */}
                         <div style = { { display : "flex", flexDirection : "row", gap : "4px", alignItems : "center" } }>
                             <Stadium style = { { fontSize: '12px' } }/>
-                            <p className = "meta">{ item.properties.venue.rich_text[0]?.plain_text || "TBD" }</p>
+                            <p className = "meta">{ item.properties.venue.rich_text[0]?.plain_text || "-" }</p>
                         </div>
 
                     </div>    
