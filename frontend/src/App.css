@@ -5,8 +5,9 @@
     --font-size-huge : 40px;
     --font-size-large : 20px;
     --font-size-medium : 18px;
-    --font-size-small : 14px;
-    --font-size-tiny : 12px;
+    --font-size-small : 16px;
+    --font-size-tiny : 14px;
+    --font-size-teeny : 12px;
 
     /* weight : 400 - 900 */
     --font-Orbitron : 'Orbitron'; 
@@ -396,8 +397,8 @@ input:focus, button:focus {
 }
 
 .icon {
-    width : 16px !important;
-    height : 16px !important;
+    width : 20px;
+    height : 20px;
     object-fit: contain;
 }
 
@@ -490,4 +491,13 @@ img.twemoji {
   height: 20px !important;
   width: 20px !important;
   display: inline-block !important;
+}
+
+.testcss>img {
+    overflow : hidden;
+    position : absolute;
+    z-index : -1;
+    opacity : 0.25;
+    right : 0;
+    height : 180px;
 }

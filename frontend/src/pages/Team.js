@@ -106,19 +106,11 @@ export default function Team(){
       fetchGames(id);
     }, []);
 
-    useEffect( () => {
-      // if(data){
-      //   console.log(data);
-      // }
-
-      // if(players){
-      //   console.log("asd",players)
-      // }
-
-      if( data && teamColor ){
+    useEffect(() => {
+      if (data && teamColor && players && games) {
         setLoading(false);
       }
-    }, [ data, teamColor ]);
+    }, [data, teamColor, players, games]);    
 
     const highlights = [
       {
@@ -167,95 +159,98 @@ export default function Team(){
 
     return (
       <>
-      { loading ? <Loading/> : 
+        { loading ? <Loading/> : 
       
-      <div className = "page">
-        <div className = "banner">
-          <div className = "img-banner-container">
-            <img className = "img-banner" src = { data.icon?.file.url ? data.icon?.file.url : "" }/>
+        <div className = "page">
+          <div className = "banner">
+            <div className = "img-banner-container">
+              <img className = "img-banner" src = { data.icon?.file.url ? data.icon?.file.url : `${process.env.PUBLIC_URL}/logo.png` }/>
+            </div>
+            
+            <div className = "banner-text" style = { { backgroundColor: teamColor, display : "flex", flexDirection : "row", alignItems : "center" }}>
+              <div style = { { flex : 1 } }>
+                <h1>{ data && data.properties?.Name.title[0].plain_text }</h1>
+                <p>{ players.length } members  ·  New York  ·  Since 2022</p>
+              </div>
+
+              
+              <Link to = {`/game`} state = { { team : data, players : players } }>
+                Start Game
+              </Link>
+              
+
+            </div>
           </div>
           
-          <div className = "banner-text" style = { { backgroundColor: teamColor, display : "flex", flexDirection : "row", alignItems : "center" }}>
+          <div style = { { display : "flex", flexDirection : "row", gap : "8px" } }>
+            
+            <div className = "dashboard-nav-container">
+              <h3 className = "dashboard-nav">Games</h3>
+              <h3 className = "dashboard-nav">Highlights</h3>
+              <h3 className = "dashboard-nav">Players</h3>
+              <h3 className = "dashboard-nav">Gallery</h3>
+            </div>
+
             <div style = { { flex : 1 } }>
-              <h1>{ data && data.properties?.Name.title[0].plain_text }</h1>
-              <p>{ players.length } members  ·  New York  ·  Since 2022</p>
-            </div>
 
-            
-            <Link to = {`/game`} state = { { team : data, players : players } }>
-              Start Game
-            </Link>
-            
+              <TeamDivider text = "Games" length = { games.length }/>
+              <GameListItem icon = { data.icon?.file.url ? data.icon?.file.url : process.env.PUBLIC_URL + '/logo.png' } color = { teamColor } data = { games } team = { data } players = { players } />
 
-          </div>
-        </div>
-        
-        <div style = { { display : "flex", flexDirection : "row", gap : "8px" } }>
-          
-          <div className = "dashboard-nav-container">
-            <h3 className = "dashboard-nav">Games</h3>
-            <h3 className = "dashboard-nav">Highlights</h3>
-            <h3 className = "dashboard-nav">Players</h3>
-            <h3 className = "dashboard-nav">Gallery</h3>
-          </div>
+              <TeamDivider text = "Highlights" length = ""/>
+              
+              <div className = "grid-container">
+                { highlights.map( ( item, index) => (
+                        <div key = { index } className = "grid-item">
+                            
 
-          <div style = { { flex : 1 } }>
+                            <div className = "highlight-container">
+                                {/* <img src = { process.env.PUBLIC_URL + '/graphics/thumbnail.png' }/> */}
+                                <VideoModal videoId = { item.video_id }/>
 
-            <TeamDivider text = "Games" length = { games.length }/>
-            <GameListItem icon = { data.icon?.file.url ? data.icon?.file.url : process.env.PUBLIC_URL + '/logo.png' } color = { teamColor } data = { games } team = { data } players = { players } />
+                                <img className = "highlight-thumbnail" src = "https://i.namu.wiki/i/FJgVhMvYkDgVdPfiENuaEtgJo11sef1SpxP4jx6lmMXMQ43bgmkxR3IlmdzPKqk91V4E_zoP0pF4RWhx-qcS-Q.webp"/>
+                            </div>
 
-            <TeamDivider text = "Highlights" length = ""/>
-            
-            <div className = "grid-container">
-              { highlights.map( ( item, index) => (
-                      <div key = { index } className = "grid-item">
-                          
-
-                          <div className = "highlight-container">
-                              {/* <img src = { process.env.PUBLIC_URL + '/graphics/thumbnail.png' }/> */}
-                              <VideoModal videoId = { item.video_id }/>
-
-                              <img className = "highlight-thumbnail" src = "https://i.namu.wiki/i/FJgVhMvYkDgVdPfiENuaEtgJo11sef1SpxP4jx6lmMXMQ43bgmkxR3IlmdzPKqk91V4E_zoP0pF4RWhx-qcS-Q.webp"/>
-                          </div>
-
-                          <div className = "highlight-text">
-                              <h3>{ item.title }</h3>
-                              <p className = "meta">{ item.players }</p>
-                          </div>
+                            <div className = "highlight-text">
+                                <h3>{ item.title }</h3>
+                                <p className = "meta">{ item.players }</p>
+                            </div>
+                        </div>
+                    ) )}
+              </div>
+              
+              <TeamDivider text = "Players" length = { players.length }/>
+              { players.map( ( item, index) => (
+                <div className="testcss" style = { { position : "relative", overflow : "hidden", backgroundImage : `url(https://am-a.akamaihd.net/image?resize=375:&f=http://static.lolesports.com/players/silhouette.png)`, backgroundSize : "160px", backgroundPosition : "right", backgroundRepeat : "no-repeat", display : "flex", width : "100%", height : "120px", backgroundColor : "var(--black8)", alignItems : "center", padding : "4px", marginBottom : "8px" } }>
+                
+                    <img src = { data.icon?.file.url ? data.icon.file.url : `${process.env.PUBLIC_URL}/logo.png` }/>
+                  
+                    <div style = { { flex : 1, display : "flex", flexDirection : "row", gap : "0px",alignItems : "center" } }>
+                      <div className = "icon-container">
+                        <img className = "icon" src = { iconMap[item.properties.position_rollup?.rollup.array[0].title[0].plain_text] }/>
                       </div>
-                  ) )}
-            </div>
-            
-            <TeamDivider text = "Players" length = { players.length }/>
-            { players.map( ( item, index) => (
-              <div style = { { display : "flex", width : "100%", height : "80px", alignItems : "center", backgroundColor : "var(--black4)", padding : "4px", marginBottom : "8px"} }>
-                
-                <div style = { { flex : 1, display : "flex", flexDirection : "row", gap : "0px",alignItems : "center" } }>
-                  <div className = "icon-container">
-                    <img className = "icon" src = { iconMap[item.properties.position_rollup?.rollup.array[0].title[0].plain_text] }/>
-                  </div>
 
-                  <div className = "icon-container">
-                    <p className = "number">{ item.properties.back_number.rich_text[0].plain_text }</p>
-                  </div>
-                
-                  <h2 style = { { marginRight : "8px" } }>{ item.properties.first_name.rich_text[0].plain_text } { item.properties.last_name.rich_text[0].plain_text }</h2>
-                  <p className = "meta">{ item.properties.Name.title[0].plain_text } · { item.properties.position_rollup?.rollup.array[0].title[0].plain_text }</p>
+                      <div className = "icon-container">
+                        <p className = "number">{ item.properties.back_number.rich_text[0].plain_text }</p>
+                      </div>
+                    
+                      <h2 style = { { marginRight : "8px" } }>{ item.properties.first_name.rich_text[0].plain_text } { item.properties.last_name.rich_text[0].plain_text }</h2>
+                      <p className = "meta">{ item.properties.Name.title[0].plain_text } · { item.properties.position_rollup?.rollup.array[0].title[0].plain_text }</p>
+                      
+                    </div>
+
+                    <Link key = { index } to = {`/player/${item.id}`}>
+                      <IconButton icon = { ArrowForward }/>
+                    </Link>
+                  
                   
                 </div>
+              ) )}
+            </div>     
 
-                <Link key = { index } to = {`/player/${item.id}`}>
-                  <IconButton icon = { ArrowForward }/>
-                </Link>
-                
-              </div>
-            ) )}
-          </div>     
+          </div>
 
         </div>
-
-      </div>
-}
+        }
       </>
     );
 }
