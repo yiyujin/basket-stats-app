@@ -202,7 +202,7 @@ export default function Team(){
           <div style = { { flex : 1 } }>
 
             <TeamDivider text = "Games" length = { games.length }/>
-            <GameListItem id = { id } team = { data.properties?.Name.title[0].plain_text } icon = { data.icon?.file.url ? data.icon?.file.url : process.env.PUBLIC_URL + '/logo.png' } color = { teamColor } data = { games }/>
+            <GameListItem icon = { data.icon?.file.url ? data.icon?.file.url : process.env.PUBLIC_URL + '/logo.png' } color = { teamColor } data = { games } team = { data } players = { players } />
 
             <TeamDivider text = "Highlights" length = ""/>
             

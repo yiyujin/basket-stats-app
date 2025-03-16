@@ -15,7 +15,7 @@ app.use(express.static('html'));
 app.use(
   cors({
     origin: "http://localhost:3000",
-    methods: "GET,POST,PUT,DELETE",
+    methods: "GET,POST,PUT,PATCH,DELETE",
     allowedHeaders: "Content-Type,Authorization",
     credentials: true
   })
@@ -372,6 +372,117 @@ app.post("/api/create-a-page", async (req, res) => {
 
   try {
     const result = await createAPage(name, url); // Call the createAPage function.
+    res.status(200).json(result); // Send the response back to the client.
+  } catch (error) {
+    res.status(500).json({ error: error.message }); // Handle errors and send a proper response.
+  }
+});
+
+// CREATE A PAGE - GAMES
+export async function createAPageGames( name, url, log ) {
+  const notion = new Client({ auth: TOKEN });
+
+  try {
+    const response = await notion.pages.create({
+      parent: {
+        type: "database_id",
+        database_id: DATABASE_ID_GAMES,
+      },
+      properties: {
+        Name: {
+          title: [
+            {
+              text: {
+                content: name,
+              },
+            },
+          ],
+        },
+        url: {
+          rich_text: [
+            {
+              text: {
+                content: url,
+              },
+            },
+          ],
+        },
+        log: {
+          rich_text: [
+            {
+              text: {
+                content: log,
+              },
+            },
+          ],
+        },
+      },
+    });
+
+    // console.log("Page created successfully:", response);
+    return response;
+  } catch (error) {
+    console.error("Error creating page in Notion:", error.message);
+    throw error;
+  }
+}
+
+
+app.post("/api/create-a-page-games", async (req, res) => {
+  const { name, url, log } = req.body; // Extract name and url from the request body.
+
+  try {
+    const result = await createAPageGames(name, url, log); // Call the createAPage function.
+    res.status(200).json(result); // Send the response back to the client.
+  } catch (error) {
+    res.status(500).json({ error: error.message }); // Handle errors and send a proper response.
+  }
+});
+
+
+// UPDATE PAGE PROPERTIES
+// https://developers.notion.com/reference/patch-page
+export async function updatePageGames( pageId, url, log ) {
+  const notion = new Client({ auth: TOKEN });
+
+  try {
+    const response = await notion.pages.update({
+      page_id : pageId,
+      properties: {
+        url: {
+          rich_text: [
+            {
+              text: {
+                content: url,
+              },
+            },
+          ],
+        },
+        log: {
+          rich_text: [
+            {
+              text: {
+                content: log,
+              },
+            },
+          ],
+        },
+      },
+    });
+
+    return response;
+  } catch (error) {
+    console.error("Error creating page in Notion:", error.message);
+    throw error;
+  }
+}
+
+
+app.patch("/api/update-a-page-games", async (req, res) => {
+  const { pageId, url, log } = req.body; // Extract name and url from the request body.
+
+  try {
+    const result = await updatePageGames(pageId, url, log); // Call the createAPage function.
     res.status(200).json(result); // Send the response back to the client.
   } catch (error) {
     res.status(500).json({ error: error.message }); // Handle errors and send a proper response.

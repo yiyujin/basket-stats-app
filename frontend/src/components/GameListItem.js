@@ -4,7 +4,7 @@ import { ArrowForward, Stadium, EventAvailable, SportsBasketball } from '@mui/ic
 import IconButton from "./IconButton";
 import Chip from "./Chip";
 
-export default function GameListItem( { id, team, icon, color, data } ){
+export default function GameListItem( { id, icon, color, data, team, players } ){
     return(
         <>
             { data && data.map( ( item, index ) => (
@@ -15,7 +15,7 @@ export default function GameListItem( { id, team, icon, color, data } ){
                         {/* SCORE */}
                         <div style = { { width : "440px", display : "flex", flexDirection : "row", gap : "8px", alignItems : "center" } }>
                             
-                            { item.properties.team_opponent ? <p>{ team }</p> : "Team B" }
+                            { item.properties.team_opponent ? <p>{ team.properties?.Name.title[0].plain_text }</p> : "Team B" }
                             <img className = "icon" src = { icon }/>
 
                             <div style = { { width : "72px", margin : "0px 8px" } }>
@@ -49,9 +49,9 @@ export default function GameListItem( { id, team, icon, color, data } ){
 
                     </div>    
 
-                    <Link to = {`/game`}>
+                    <Link to = {``}>
                         <IconButton icon = { ArrowForward }/>
-                    </Link>  
+                    </Link>
 
                 </div>
             ))} 
