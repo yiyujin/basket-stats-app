@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
 
@@ -10,6 +11,7 @@
     --font-size-teeny : 12px;
 
     /* weight : 400 - 900 */
+    --font-Inter : 'Inter';
     --font-Orbitron : 'Orbitron'; 
     --font-Barlow : 'Barlow';
 
@@ -49,6 +51,10 @@
     line-height : 140%;
 
     box-shadow : 0 0 1px rgba(0, 255, 255, 1.0);
+}
+
+body {
+    font-family : var(--font-Inter);
 }
 
 a {
@@ -349,7 +355,7 @@ input:focus, button:focus {
     width : 100%;
     height : 48px;
 
-    z-index : 1;
+    z-index : 99;
 
     position : fixed;
     display : flex;
@@ -493,11 +499,30 @@ img.twemoji {
   display: inline-block !important;
 }
 
-.testcss>img {
+/* .player-list-item-container>img {
     overflow : hidden;
     position : absolute;
     z-index : -1;
     opacity : 0.25;
     right : 0;
     height : 180px;
+} */
+
+.player-logo {
+    overflow : hidden;
+    position : absolute;
+    z-index : -1;
+    opacity : 0.25;
+    right : 0;
+    height : 180px;
+}
+
+.player-profile {
+    overflow : hidden;
+    position : absolute;
+    z-index : 1;
+    right : 0;
+    width : 160px;
+    /* height : 180px; */
+    top : 0;
 }

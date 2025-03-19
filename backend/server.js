@@ -5,6 +5,14 @@ import cors from "cors";
 import multer from "multer";
 import { Client } from "@notionhq/client";
 
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+import { createProxyMiddleware } from 'http-proxy-middleware';
+
 import { TOKEN, DATABASE_ID_PLAYERS, DATABASE_ID_TEAMS, DATABASE_ID_VIDEOS, DATABASE_ID_GAMES, DATABASE_ID_SPORTS, DATABASE_ID_POSITIONS } from './config/index.js';
 import { AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION, AWS_BUCKET_NAME } from './config/index.js';
 
@@ -14,14 +22,14 @@ app.use(express.static('html'));
 
 app.use(
   cors({
-    origin: "http://localhost:3000",
+    origin: "http://localhost:5173",
     methods: "GET,POST,PUT,PATCH,DELETE",
     allowedHeaders: "Content-Type,Authorization",
-    credentials: true
+    credentials: true,
   })
 );
 
-const PORT = 8000;
+const PORT = 8000; //8000
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
 // *** S3 API ***
@@ -91,11 +99,13 @@ app.post("/upload-video", upload.single('video'), async (req, res) => {
 });
 
 
-// GET VIDEO
+// GET VIDEO - S3
 app.get("/get-video-url/:fileKey", async (req, res) => {
+  console.log(req.params.fileKey);
   try {
     const fileKey = req.params.fileKey;
     
+    console.log(fileKey);
     // Check if file exists first
     try {
       await s3.headObject({
@@ -127,6 +137,26 @@ app.get("/get-video-url/:fileKey", async (req, res) => {
     });
   }
 });
+
+// app.get("/get-video-url", async (req, res) => {
+//   try {
+//     const fileKey = AWS_ACCESS_KEY_ID;
+
+//     if (!fileKey) {
+//       return res.status(400).json({ error: "Missing fileKey" });
+//     }
+
+//     const presignedUrl = s3.getSignedUrl("getObject", {
+//       Bucket: AWS_BUCKET_NAME,
+//       Key: fileKey,
+//       Expires: 3600,
+//     });
+
+//     res.json({ fileUrl: presignedUrl });
+//   } catch (error) {
+//     res.status(500).json({ error: "Failed to generate video URL", details: error.message });
+//   }
+// });
 
 //TEST CONNECTION
 app.get("/test", (req, res) => {
@@ -248,6 +278,7 @@ export async function queryADatabaseGames( id ) {
         }
       ],
     },
+
     sorts: [
       {
         property: "Date",
@@ -276,6 +307,56 @@ app.post("/api/query-a-database-games", async (req, res) => {
   }
 });
 
+// get log and video - filter by secific game id
+export async function queryADatabaseGamesForProcessing( id ) {
+  const notion = new Client({ auth: TOKEN });
+
+  const response = await notion.databases.query({
+    database_id: DATABASE_ID_GAMES,
+    filter: {
+      and: [
+        {
+          property: "status",
+          select: {
+            equals: "Active",
+          },
+        },
+        {
+          property: "team",
+          relation: {
+            contains: id
+          }
+        }
+      ],
+    },
+    
+    sorts: [
+      {
+        property: "Date",
+        direction: "descending",
+      },
+    ],
+  });
+
+  return response.results;
+}
+
+app.post("/api/query-a-database-games-for-processing", async (req, res) => {
+  try {
+    const { id } = req.body;
+
+    if (!id) {
+      return res.status(400).json({ error: "Missing required 'id' field" });
+    }
+
+
+    const results = await queryADatabaseGames(id);
+    res.json(results);
+  } catch (error) {
+    console.error("Error querying Notion database:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
 
 
 //RETRIEVE A PAGE
@@ -309,6 +390,28 @@ export async function retrieveAPagePlayer( id ) {
 }
 
 app.get("/api/retrieve-a-page-player", async (req, res) => {
+  const { id } = req.query;
+
+  if (!id) {
+    return res.status(400).json({ error: 'id parameter is required' });
+  }
+
+  try {
+    const results = await retrieveAPagePlayer( id );
+    res.json(results);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// get a game
+export async function retrieveAPageGame( id ) {
+  const notion = new Client({ auth: TOKEN });
+  const response = await notion.pages.retrieve( { page_id: id } );
+  return response;
+}
+
+app.get("/api/retrieve-a-page-game", async (req, res) => {
   const { id } = req.query;
 
   if (!id) {
