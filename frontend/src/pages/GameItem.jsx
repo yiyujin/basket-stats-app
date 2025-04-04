@@ -3,15 +3,32 @@ import { useParams } from "react-router-dom";
 
 import Loading from "../components/Loading";
 
-const videoId = "do6adKhUZ4U";
-
-const YouTubePlayer = ({ onPlayerReady }) => {
+const YouTubePlayer = ({ videoId, onPlayerReady }) => {
   const playerRef = useRef(null);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
+  const intervalRef = useRef(null); // Track interval to clear it later
 
   useEffect(() => {
-    window.onYouTubeIframeAPIReady = () => {
+    const loadYouTubeAPI = () => {
+      if (window.YT && window.YT.Player) {
+        initializePlayer();
+        return;
+      }
+
+      window.onYouTubeIframeAPIReady = initializePlayer;
+
+      if (!document.querySelector("script[src='https://www.youtube.com/iframe_api']")) {
+        const script = document.createElement("script");
+        script.src = "https://www.youtube.com/iframe_api";
+        script.async = true;
+        document.body.appendChild(script);
+      }
+    };
+
+    const initializePlayer = () => {
+      if (!videoId) return;
+
       playerRef.current = new YT.Player("player", {
         width: "100%",
         height: "100%",
@@ -27,26 +44,29 @@ const YouTubePlayer = ({ onPlayerReady }) => {
             onPlayerReady(event.target);
             setDuration(event.target.getDuration());
 
-            setInterval(() => {
-              const time = event.target.getCurrentTime();
-              setCurrentTime(time);
+            intervalRef.current = setInterval(() => {
+              setCurrentTime(event.target.getCurrentTime());
             }, 1000);
-          }
+          },
         },
       });
     };
 
-    const script = document.createElement("script");
-    script.src = "https://www.youtube.com/iframe_api";
-    script.async = true;
-    document.body.appendChild(script);
+    loadYouTubeAPI();
 
-    return () => document.body.removeChild(script);
-  }, [onPlayerReady]);
+    return () => {
+      if (playerRef.current) {
+        playerRef.current.destroy();
+      }
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    };
+  }, [videoId, onPlayerReady]);
 
   return (
-    <div style = { { position: "relative", paddingTop: "56.25%", width: "100%" } }>
-      <div id = "player" style = { { position: "absolute", top: 0, left: 0, width: "100%", height: "100%" } }/>
+    <div style={{ position: "relative", paddingTop: "56.25%", width: "100%" }}>
+      <div id="player" style ={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%" }} />
     </div>
   );
 };
@@ -56,8 +76,9 @@ export default function GameItem() {
 
   const [loading, setLoading] = useState(true);
   const [game, setGame] = useState([]);
+  const [videoId, setVideoId] = useState("");
 
-  const fetchGame = async ( id ) => {
+  const fetchGame = async (id) => {
     try {
       const response = await fetch(`http://localhost:8000/api/retrieve-a-page-team?id=${id}`, {
         method: "GET",
@@ -71,97 +92,181 @@ export default function GameItem() {
       }
   
       const result = await response.json();
-      // console.log("game :", result.properties);
       setGame(result.properties);
+      setVideoId(result.properties.youtube_id.rich_text[0].plain_text);
     } catch (error) {
       console.error("Error fetching data:", error.message);
     }
   };
 
+  const fetchHighlights = async (gameId) => {
+    try {
+      const response = await fetch(`http://localhost:8000/api/query-a-database-highlights`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ id: gameId }),
+      });
+      
+      if (!response.ok) {
+        throw new Error("Failed to fetch highlights");
+      }
+      
+      const result = await response.json();
+      
+      // Transform API response into your component's expected format
+      const formattedHighlights = result.map(highlight => ({
+        pageId: highlight.id, // Store the Notion page ID
+        time: highlight.properties.time.rich_text[0]?.plain_text,
+        timeInSeconds: parseInt(highlight.properties.time_in_seconds.rich_text[0]?.plain_text),
+        name: highlight.properties.created_by.rich_text[0]?.plain_text,
+        comments: highlight.properties.comments.rich_text[0]?.plain_text ? 
+          JSON.parse(highlight.properties.comments.rich_text[0].plain_text) : []
+      }));
+      
+      setHighlights(formattedHighlights);
+    } catch (error) {
+      console.error("Error fetching highlights:", error);
+      setHighlights([]); // Set to empty array if fetch fails
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  async function saveHighlightToNotion(gameId, highlight) {
+    try {
+      const response = await fetch("http://localhost:8000/api/create-a-page-highlights", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          id: gameId,
+          data: {
+            time: highlight.time,
+            time_in_seconds: String(Math.floor(highlight.timeInSeconds)),
+            created_by: highlight.name,
+            comments: JSON.stringify(highlight.comments), // Store as raw JSON string
+          },
+        }),
+      });
+  
+      if (!response.ok) {
+        throw new Error("Failed to save highlight to Notion");
+      }
+  
+      const result = await response.json();
+      console.log("Highlight saved:", result);
+      return result.id; // Return the pageId
+    } catch (err) {
+      console.error("Error:", err);
+      return null;
+    }
+  }
+
+  async function updateHighlightComments(pageId, updatedComments) {
+    if (!pageId) {
+      console.warn("No pageId found for this highlight. Skipping update.");
+      return false;
+    }
+    
+    try {
+      const response = await fetch("http://localhost:8000/api/update-a-page-highlights", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          pageId,
+          comments: JSON.stringify(updatedComments),
+        }),
+      });
+  
+      if (!response.ok) {
+        throw new Error("Failed to update comments");
+      }
+  
+      const result = await response.json();
+      console.log("Comments updated:", result);
+      return true;
+    } catch (err) {
+      console.error("Error updating comments:", err);
+      return false;
+    }
+  }
+
   const [player, setPlayer] = useState(null);
   const [name, setName] = useState("");
-  const [comment, setComment] = useState("");
-  const [currentHighlightComment, setCurrentHighlightComment] = useState("");
-  const [currentCommentName, setCurrentCommentName] = useState("");
-  
-  // DUMMY DATA
-  const [highlights, setHighlights] = useState([
-    { 
-      time: "0:45", 
-      timeInSeconds: 45, 
-      name: "Alex", 
-      comments: [
-        { name: "Alex", comment: "Great move by no.9" },
-        { name: "Jordan", comment: "I disagree, should have waited." }
-      ]
-    },
-    { 
-      time: "2:13", 
-      timeInSeconds: 133, 
-      name: "Taylor", 
-      comments: [
-        { name: "Taylor", comment: "Key moment in the video" }
-      ]
-    },
-  ]);
+  const [highlights, setHighlights] = useState([]);
 
   // Track input values for each highlight
   const [highlightInputs, setHighlightInputs] = useState({});
-  const [highlightInputNames, setHighlightInputNames] = useState({});
 
-  // Initialize input states
+  // Initialize data on load
   useEffect(() => {
-    fetchGame(id);
+    const initializeData = async () => {
+      await fetchGame(id);
+      await fetchHighlights(id);
+    };
+    
+    if (id) {
+      initializeData();
+    }
+  }, [id]);
 
+  // Update input states when highlights change
+  useEffect(() => {
     const initialInputs = {};
-    const initialNames = {};
     highlights.forEach((_, index) => {
       initialInputs[index] = "";
-      initialNames[index] = "";
     });
     setHighlightInputs(initialInputs);
-    setHighlightInputNames(initialNames);
-  }, []);
+  }, [highlights]);
 
-  const handleLogTimestamp = () => {
-    if(!name){
+  const handleLogTimestamp = async () => {
+    if (!name) {
       alert("Write down your name");
       return;
     }
-
-    if (!player) return;
-    const currentTime = player.getCurrentTime();
   
-    // Convert seconds to minutes:seconds format
+    if (!player) return;
+  
+    const currentTime = player.getCurrentTime();
     const minutes = Math.floor(currentTime / 60);
     const seconds = Math.floor(currentTime % 60);
-    const timeString = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    const timeString = `${minutes}:${seconds.toString().padStart(2, "0")}`;
   
     const newHighlight = {
       time: timeString,
-      timeInSeconds: currentTime,
+      timeInSeconds: Math.floor(currentTime),
       name: name,
-      comments: []
+      comments: [],
     };
   
-    setHighlights(prevHighlights => {
-      const newHighlights = [newHighlight, ...prevHighlights]; // Insert at the beginning
+    try {
+      // Save to Notion and get the pageId
+      const pageId = await saveHighlightToNotion(id, newHighlight);
   
-      // Update input states for the new highlight
-      setHighlightInputs(prev => ({
-        [0]: "",
-        ...Object.fromEntries(Object.entries(prev).map(([key, val]) => [parseInt(key) + 1, val]))
-      }));
-  
-      setHighlightInputNames(prev => ({
-        [0]: "",
-        ...Object.fromEntries(Object.entries(prev).map(([key, val]) => [parseInt(key) + 1, val]))
-      }));
-  
-      return newHighlights;
-    });
-  };
-  
+      if (pageId) {
+        // Add the pageId to our highlight object
+        const highlightWithPageId = { ...newHighlight, pageId };
+        
+        setHighlights(prevHighlights => [highlightWithPageId, ...prevHighlights]);
+        
+        // Reset input for the new highlight
+        setHighlightInputs(prev => ({
+          [0]: "",
+          ...Object.fromEntries(Object.entries(prev).map(([key, val]) => [parseInt(key) + 1, val])),
+        }));
+      } else {
+        alert("Failed to save highlight to Notion");
+      }
+    } catch (err) {
+      console.error("Failed to create highlight:", err);
+      alert("Error creating highlight");
+    }
+  };  
 
   const seekToTime = (seconds) => {
     if (player) {
@@ -178,46 +283,45 @@ export default function GameItem() {
     }));
   };
 
-  const handleNameChange = (index, value) => {
-    setHighlightInputNames(prev => ({
-      ...prev,
-      [index]: value
-    }));
-  };
-
-
-const handleCommentKeyPress = (index, event) => {
-  if (event.key === "Enter" && highlightInputs[index].trim() !== "") {
-    const commentName = name.trim() || "Anonymous";
-
-    const updatedHighlights = [...highlights];
-    updatedHighlights[index].comments.push({
-      name: commentName,
-      comment: highlightInputs[index]
-    });
-
-    setHighlights(updatedHighlights);
-
-    handleCommentChange(index, "");
-
-    setTimeout(() => {
-      event.target.style.backgroundColor = "";
-    }, 300);
-  }
-};
-
-
-  // Format timestamp for display
-  const formatTimestamp = (date) => {
-    if (!date) return "";
-    return new Date(date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  };
-
-  useEffect( () => {
-    if( game ){
-      setLoading(false);
+  const handleCommentKeyPress = async (index, event) => {
+    if (event.key === "Enter" && highlightInputs[index].trim() !== "") {
+      const commentName = name.trim();
+      
+      // Clone the highlights array to avoid direct state mutation
+      const updatedHighlights = [...highlights];
+      
+      // Add the new comment
+      updatedHighlights[index].comments.push({
+        name: commentName,
+        comment: highlightInputs[index].trim(),
+      });
+      
+      // Get the pageId for this highlight
+      const pageId = updatedHighlights[index].pageId;
+      
+      // Only try to update Notion if we have a pageId
+      if (pageId) {
+        const success = await updateHighlightComments(
+          pageId,
+          updatedHighlights[index].comments
+        );
+        
+        if (success) {
+          // Update the state with new comments
+          setHighlights(updatedHighlights);
+          // Clear the input field
+          handleCommentChange(index, "");
+        } else {
+          alert("Failed to save comment to Notion");
+        }
+      } else {
+        console.warn("No pageId found for this highlight. Skipping update.");
+        // Even if we can't save to Notion, update the UI
+        setHighlights(updatedHighlights);
+        handleCommentChange(index, "");
+      }
     }
-  }, [game, highlights]);
+  };  
 
   return (
     <>
@@ -228,7 +332,7 @@ const handleCommentKeyPress = (index, event) => {
         <h2>{ game.team1?.rich_text[0].plain_text } vs { game.team2?.rich_text[0].plain_text }</h2>
         <p className = "meta">For Analysis. Press the Highlight button to record timestamps. Add comments.</p>
 
-        <YouTubePlayer onPlayerReady = { setPlayer } />
+        <YouTubePlayer videoId={videoId} onPlayerReady={setPlayer} />
 
         <br/>
 
@@ -243,7 +347,7 @@ const handleCommentKeyPress = (index, event) => {
         <h2>Commentary</h2>
 
         <div>
-          { highlights.map( ( item, index ) => (
+          { highlights.length > 0 ? highlights.map( ( item, index ) => (
             <div key = { index } style = { { marginBottom: "12px", padding: "16px 12px", borderRadius: "8px", border : "1.5px solid rgba(var(--pt3), 0.16)" } }>
               <div style = { { display: "flex", alignItems: "center", gap: "8px", justifyContent: "space-between", paddingBottom : "8px" } }>
                 
@@ -259,11 +363,10 @@ const handleCommentKeyPress = (index, event) => {
                 <span className = "meta" style = { { flex : "flex-end"} }>{ item.comments.length } comment{ item.comments.length !== 1 ? 's' : '' }</span>
               </div>
               
-
-            { item.comments.map( ( item, index ) => (
-              <div key = { index } style = { { padding: "8px 0px" } }>
-                <span style = {{ fontWeight: "bold", fontSize: "var(--font-size-tiny)" }}>{ item.name }</span>
-                <p style = { { fontSize: "var(--font-size-small)", paddingTop : "4px" }}>{ item.comment }</p>
+            { item.comments.map( ( comment, cIndex ) => (
+              <div key = { cIndex } style = { { padding: "8px 0px" } }>
+                <span style = {{ fontWeight: "bold", fontSize: "var(--font-size-tiny)" }}>{ comment.name }</span>
+                <p style = { { fontSize: "var(--font-size-small)", paddingTop : "4px" }}>{ comment.comment }</p>
               </div>
               ))
             }
@@ -272,10 +375,10 @@ const handleCommentKeyPress = (index, event) => {
               value = { highlightInputs[index] || "" }
               onChange = { (e) => handleCommentChange(index, e.target.value) }
               onKeyPress = { (e) => handleCommentKeyPress(index, e) }
-              placeholder = "Add a comment (press Enter to post)"
+              placeholder = "Add a comment (Enter)"
             />
             </div>
-          ))}
+          )) : <p className = "meta">No highlight stamps.</p>}
         </div>
       </div>
     </div>

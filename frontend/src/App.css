@@ -20,7 +20,7 @@
     --pt : #4112a5;
     --pt2 : #ffa600;
 
-    /* --pt3 : #38003c; */
+    --pt0 : #38003c;
     --pt3 : 56, 0, 60;
 
     --black100 : rgba(0, 0, 0, 0.88);
@@ -237,8 +237,8 @@ input:focus, button:focus {
     align-items: center;
     justify-content: center;
     
-    /* 400 - 120 / 2 */
-    margin-top : 340px;
+    /* banner height 400px - page height 56px - 120 / 2 */
+    margin-top : 284px;
     margin-bottom : 40px;
 }
 
@@ -379,22 +379,23 @@ input:focus, button:focus {
     height : 56px;
 
     z-index : 99;
-
     position : fixed;
+
     display : flex;
     flex-direction: row;
     gap : 16px;
+    padding-left : 40px;
 
     align-items: center;
-    justify-content: center;
+    /* justify-content: center; */
 
-    background-color : white;
+    background-color : var(--pt0);
+    color : white;
+
+    font-weight: 500;
+    font-family : var(--font-Barlow);
 
     border-bottom : 1px solid var(--black40);
-}
-
-.nav>p {
-    padding-top : 0px;
 }
 
 .icon-button {

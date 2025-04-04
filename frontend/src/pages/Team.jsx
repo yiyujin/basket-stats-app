@@ -108,65 +108,30 @@ export default function Team(){
       fetchPlayers(id);
     }, []);
 
-    useEffect( () => {
-      fetchGames(id);
-    }, [data]);
+    useEffect(() => {
+      if (data && players) {
+        fetchGames(id, data);
+      }
+    }, [data, players]);
+
+    const allLoaded =
+      data &&
+      players &&
+      games &&
+      opponentGames &&
+      teamColor &&
+      teamPhoto;
 
     useEffect(() => {
-      if (data && teamColor && teamPhoto && players && games && opponentGames) {
+      if (allLoaded) {
         setLoading(false);
       }
-    }, [data, teamColor, teamPhoto, players, games, opponentGames]);
-
-    const highlights = [
-      {
-          title : "DBK's 3pt Play",
-          players : "DBK, DO",
-          scorer : "DBK",
-          video_id : "jfgWojrwE74",
-          link : "https://www.youtube.com/embed/jfgWojrwE74?si=8Dha-oIF4lXlbRcJ"
-      },
-      {
-          title : "DBK's 2pt Play",
-          players : "DBK, Rob",
-          scorer : "DBK",
-          video_id : "s-IwazC6GXw",
-          link : "https://www.youtube.com/embed/s-IwazC6GXw?si=PQavN-WZl5_KOWlz"
-      },
-      {
-          title : "DBK's Steal",
-          players : "DBK",
-          scorer : "DBK",
-          video_id : "LsLTfRKGfno",
-          link : "https://www.youtube.com/embed/LsLTfRKGfno?si=KMON-mUNmTE3BXda"
-      },
-      {
-          title : "DBK's 2pt Play",
-          players : "DBK, Rob",
-          scorer : "DBK",
-          video_id : "X8fe76BYjkk",
-          link : "https://www.youtube.com/embed/X8fe76BYjkk?si=Ng7O3QD1-LfgqHQZ"
-      },
-      {
-          title : "DBK's 2pt Play",
-          players : "DBK, Rob",
-          scorer : "DBK",
-          video_id : "7ftWRDfKXmg",
-          link : "https://www.youtube.com/embed/X8fe76BYjkk?si=Ng7O3QD1-LfgqHQZ"
-      },
-      {
-          title : "DBK's 2pt Play",
-          players : "DBK",
-          scorer : "DBK",
-          video_id: "91MrognEtf4",
-          link : "https://www.youtube.com/embed/7ftWRDfKXmg?si=45lIMOAdqInXCmIh"
-      }
-  ]
+    }, [allLoaded]);
 
     return (
       <>
         { loading ? <Loading/> :
-        <div style = { { display : "flex" } }>
+        <div>
           
           <div style = { { paddingTop : "56px" } }>
             <div style = { { overflow : "hidden", position : "absolute", zIndex : "-1", width : "100%", height : "400px", backgroundSize : "cover", backgroundPosition : "top", backgroundRepeat : "no-repeat", backgroundImage : `url(${teamPhoto})` } }>
@@ -203,10 +168,10 @@ export default function Team(){
                 <h3 className = "dashboard-nav">Gallery</h3>
               </div>
 
-              <div>
-                <div style = { { display : "flex", flexDirection : "row" , paddingBottom : "8px", gap : "16px" }}>
-                  <h2 onClick = { () => setActiveTab(1) } style = { {  cursor: "pointer", borderBottom: activeTab === 1 ? "2px solid black" : "none"} }>Games ({ games.length })</h2>
-                  <h2 onClick = { () => setActiveTab(2) }  style = { {  cursor: "pointer", borderBottom: activeTab === 2 ? "2px solid black" : "none"} }>Opponent Games ({ opponentGames.length })</h2>
+              <div style = { { width : "100%"} }>
+                <div style = { { display : "flex", flexDirection : "row", gap : "16px", borderBottom : "2px solid var(--black8)" }}>
+                  <h3 onClick = { () => setActiveTab(1) } style = { {  cursor: "pointer", borderBottom: activeTab === 1 ? "2px solid black" : "none", marginBottom: "-2px" } }>Games ({ games.length })</h3>
+                  <h3 onClick = { () => setActiveTab(2) }  style = { {  cursor: "pointer", borderBottom: activeTab === 2 ? "2px solid black" : "none", marginBottom: "-2px" } }>Opponent Games ({ opponentGames.length })</h3>
                 </div>
                 { activeTab === 1 ? (
                   <GameListItem icon = { data.icon?.file.url || "" } color = { teamColor } data = { games } team = { data } players = { players } />
@@ -228,24 +193,6 @@ export default function Team(){
                 )}
 
                 <TeamDivider text = "Highlights" length = ""/>
-                
-                <div className = "grid-container">
-                  { highlights.map( ( item, index) => (
-                    <div key = { index } className = "grid-item">
-                      <div className = "highlight-container">
-                        {/* <img src = { process.env.PUBLIC_URL + '/graphics/thumbnail.png' }/> */}
-                        <VideoModal videoId = { item.video_id }/>
-
-                        <img className = "highlight-thumbnail" src = "https://i.namu.wiki/i/FJgVhMvYkDgVdPfiENuaEtgJo11sef1SpxP4jx6lmMXMQ43bgmkxR3IlmdzPKqk91V4E_zoP0pF4RWhx-qcS-Q.webp"/>
-                      </div>
-
-                      <div className = "highlight-text">
-                        <h3>{ item.title }</h3>
-                        <p className = "meta">{ item.players }</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
                 
                 <TeamDivider text = "Squad" length = { players.length }/>
                 { players.map( ( item, index) => (

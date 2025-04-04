@@ -1,4 +1,4 @@
-import { TOKEN, DATABASE_ID_PLAYERS, DATABASE_ID_TEAMS, DATABASE_ID_VIDEOS, DATABASE_ID_GAMES, DATABASE_ID_SPORTS, DATABASE_ID_POSITIONS } from './config/index.js';
+import { TOKEN, DATABASE_ID_PLAYERS, DATABASE_ID_TEAMS, DATABASE_ID_VIDEOS, DATABASE_ID_GAMES, DATABASE_ID_SPORTS, DATABASE_ID_POSITIONS, DATABASE_ID_HIGHLIGHTS } from './config/index.js';
 import { AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION, AWS_BUCKET_NAME } from './config/index.js';
 
 import "dotenv/config";
@@ -278,8 +278,24 @@ export async function queryADatabaseTeams() {
 
   const response = await notion.databases.query({
     database_id: DATABASE_ID_TEAMS,
+    filter: {
+      and: [
+        {
+          property: "Status",
+          select: {
+            equals: "Active",
+          },
+        },
+      ],
+    },
+    sorts: [
+      {
+        property: "Created",
+        direction: "descending",
+      },
+    ],
   });
-
+  
   return response.results;
 }
 
@@ -443,6 +459,56 @@ app.post("/api/query-a-database-games-for-processing", async (req, res) => {
   }
 });
 
+// GET HIGHLIGHTS - FITLER BY GAME
+export async function queryADatabaseHighlights( id ) {
+  const notion = new Client({ auth: TOKEN });
+
+  const response = await notion.databases.query({
+    database_id: DATABASE_ID_HIGHLIGHTS,
+    filter: {
+      and: [
+        // {
+        //   property: "status",
+        //   select: {
+        //     equals: "Active",
+        //   },
+        // },
+        {
+          property: "game_id",
+          rich_text : {
+            equals : id
+          }
+        },
+      ],
+    },
+
+    sorts: [
+      {
+        property: "Created",
+        direction: "descending",
+      },
+    ],
+  });
+
+  return response.results;
+}
+
+app.post("/api/query-a-database-highlights", async (req, res) => {
+  try {
+    const { id } = req.body;
+
+    if (!id) {
+      return res.status(400).json({ error: "Missing required 'id' field" });
+    }
+
+    const results = await queryADatabaseHighlights(id);
+    res.json(results);
+  } catch (error) {
+    console.error("Error querying Notion database:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 
 //RETRIEVE A PAGE
 // get a team
@@ -551,7 +617,6 @@ export async function createAPage( name, url ) {
     throw error;
   }
 }
-
 
 app.post("/api/create-a-page", async (req, res) => {
   const { name, url } = req.body; // Extract name and url from the request body.
@@ -693,6 +758,93 @@ app.post("/api/create-a-page-videos", async (req, res) => {
   }
 });
 
+// CREATE A PAGE - HIGHLIGHTS
+export async function createAPageHighlights( id, data ) {
+  const notion = new Client({ auth: TOKEN });
+
+  try {
+    const response = await notion.pages.create({
+      parent: {
+        type: "database_id",
+        database_id: DATABASE_ID_HIGHLIGHTS,
+      },
+      properties: {
+        Name: {
+          title: [
+            {
+              text: {
+                content: "highlight",
+              },
+            },
+          ],
+        },
+        game_id: {
+          rich_text: [
+            {
+              text: {
+                content: id,
+              },
+            },
+          ],
+        },
+        time: {
+          rich_text: [
+            {
+              text: {
+                content: data.time,
+              },
+            },
+          ],
+        },
+        time_in_seconds: {
+          rich_text: [
+            {
+              text: {
+                content: data.time_in_seconds,
+              },
+            },
+          ],
+        },
+        created_by: {
+          rich_text: [
+            {
+              text: {
+                content: data.created_by,
+              },
+            },
+          ],
+        },
+        comments: {
+          rich_text: [
+            {
+              text: {
+                content: data.comments,
+              },
+            },
+          ],
+        },
+      },
+    });
+
+    // console.log("Page created successfully:", response);
+    return response;
+  } catch (error) {
+    console.error("Error creating page in Notion:", error.message);
+    throw error;
+  }
+}
+
+app.post("/api/create-a-page-highlights", async (req, res) => {
+  const { id, data } = req.body; // Extract name and url from the request body.
+
+  try {
+    const result = await createAPageHighlights( id, data ); // Call the createAPage function.
+    res.status(200).json(result); // Send the response back to the client.
+  } catch (error) {
+    res.status(500).json({ error: error.message }); // Handle errors and send a proper response.
+  }
+});
+
 // UPDATE PAGE PROPERTIES
 // https://developers.notion.com/reference/patch-page
 export async function updatePageGames( pageId, url, log ) {
@@ -740,6 +892,46 @@ app.patch("/api/update-a-page-games", async (req, res) => {
     res.status(500).json({ error: error.message }); // Handle errors and send a proper response.
   }
 });
+
+
+// UPDATE HIGHLIGHT COMMENTS JSON
+export async function updatePageHighlights( pageId, comments ) {
+  const notion = new Client({ auth: TOKEN });
+
+  try {
+    const response = await notion.pages.update({
+      page_id : pageId,
+      properties: {
+        comments: {
+          rich_text: [
+            {
+              text: {
+                content: comments,
+              },
+            },
+          ],
+        },
+      },
+    });
+
+    return response;
+  } catch (error) {
+    console.error("Error creating page in Notion:", error.message);
+    throw error;
+  }
+}
+
+app.patch("/api/update-a-page-highlights", async (req, res) => {
+  const { pageId, comments } = req.body;
+
+  try {
+    const result = await updatePageHighlights(pageId, comments);
+    res.status(200).json(result);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 
 // RETRIEVE BLOCK CHILDREN
 // https://developers.notion.com/reference/get-block-children

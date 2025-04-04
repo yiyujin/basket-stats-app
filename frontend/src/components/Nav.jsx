@@ -2,12 +2,12 @@ import { Link } from "react-router-dom"
 
 export default function Nav(){
     const links = [
-        { href: "/", label: "Basket Stats", color : "red" },
-        { href: "/game", label: "Start Game", color : "lime"  },
-        { href: "/login", label: "Login", color : "red" },
-        { href: "/about", label: "About", color : "red" },
+        { href: "/", label: "Team Stamps", color : "red" },
+        // { href: "/game", label: "Start Game", color : "lime" },
+        // { href: "/login", label: "Login", color : "red" },
+        // { href: "/about", label: "About", color : "red" },
         { href: "/releasenotes", label: "Release Notes", color : "red" },
-        { href: "/collective", label: "Collective", color : "red" },
+        // { href: "/collective", label: "Collective", color : "red" },
     ];
 
     return(

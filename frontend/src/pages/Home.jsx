@@ -30,8 +30,7 @@ export default function Home(){
 
   return(
     <div className = "page">
-        <h1>Basket Stats ⚽️ 🏀</h1>
-        <p>Registered Teams ({ data.length }) :</p>
+        <h2>Registered Teams ({ data.length }) :</h2>
         
         { data.map( ( item ) => (
             <div key = { item.id }>

@@ -20,7 +20,6 @@ export default function GameListItem( { id, icon, color, data, team, players } )
                                 <img className = "icon" src = { icon }/>
                             </div>
                             
-
                             <div style = { { width : "72px", margin : "0px 8px" } }>
                                 <div style = { { backgroundColor : "var(--black4)", textAlign : "center", borderRadius : "var(--br)" }}>
                                     <p className = "number">{ item.properties.score.rich_text[0]?.plain_text || "TBD" }</p>
@@ -36,13 +35,13 @@ export default function GameListItem( { id, icon, color, data, team, players } )
                         </div>
 
                         {/* HIGHLIGHTS */}
-                        <div style = { { display : "flex", flexDirection : "row", gap : "4px", alignItems : "center" } }>
+                        <div style = { { width : "110px", display : "flex", flexDirection : "row", gap : "4px", alignItems : "center" } }>
                             <AutoAwesome style = { { fontSize: "14px", color : "var(--black80)" } } />
                             <p className = "meta2">16 Highlights</p>
                         </div>
 
                         {/* DATE */}
-                        <div style = { { display : "flex", flexDirection : "row", gap : "4px", alignItems : "center" } }>
+                        <div style = { { width : "110px", display : "flex", flexDirection : "row", gap : "4px", alignItems : "center" } }>
                             <EventAvailable style = { { fontSize: "14px", color : "var(--black80)" } } />
                             <p className = "meta2">{ item.properties.Date.date.start }</p>
                         </div>
