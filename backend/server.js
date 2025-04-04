@@ -1,24 +1,27 @@
+import { TOKEN, DATABASE_ID_PLAYERS, DATABASE_ID_TEAMS, DATABASE_ID_VIDEOS, DATABASE_ID_GAMES, DATABASE_ID_SPORTS, DATABASE_ID_POSITIONS } from './config/index.js';
+import { AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION, AWS_BUCKET_NAME } from './config/index.js';
+
 import "dotenv/config";
 import express from "express";
-import AWS from "aws-sdk";
+import { createServer } from "http";
+import { Server } from "socket.io";
 import cors from "cors";
+
+import AWS from "aws-sdk";
 import multer from "multer";
 import { Client } from "@notionhq/client";
-
 import path from 'path';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-import { createProxyMiddleware } from 'http-proxy-middleware';
-
-import { TOKEN, DATABASE_ID_PLAYERS, DATABASE_ID_TEAMS, DATABASE_ID_VIDEOS, DATABASE_ID_GAMES, DATABASE_ID_SPORTS, DATABASE_ID_POSITIONS } from './config/index.js';
-import { AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION, AWS_BUCKET_NAME } from './config/index.js';
-
+// SERVER INITIALIZES
 const app = express();
-app.use(express.json());
-app.use(express.static('html'));
+const server = createServer(app);
+const io = new Server(server, {
+  cors: { origin: "*", methods: ["GET", "POST"] },
+});
 
 app.use(
   cors({
@@ -28,9 +31,92 @@ app.use(
     credentials: true,
   })
 );
+app.use(express.json());
 
-const PORT = 8000; //8000
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+let conductorId = null;
+let connectedUsers = [];
+let highlights = [];
+
+let videoState = {
+  isPlaying: false,
+  currentTime: 0,
+  lastUpdated: Date.now()
+};
+
+io.on("connection", (socket) => {
+  console.log(`Client connected: ${socket.id}`);
+
+  if (!conductorId) {
+    conductorId = socket.id;
+    io.emit("conductorAssigned", conductorId);
+  }
+
+  connectedUsers.push({ id: socket.id, name: "" });
+  io.emit("userUpdates", connectedUsers);
+
+  socket.emit("highlightUpdates", highlights);
+
+  socket.emit("initialSync", videoState);
+  
+  if (conductorId && socket.id !== conductorId) {
+    io.to(conductorId).emit("newViewerJoined", { 
+      viewerId: socket.id,
+      timestamp: Date.now() 
+    });
+  }
+
+  socket.on("setUsername", ( { id, name } ) => {
+    connectedUsers = connectedUsers.map(user =>
+      user.id === id ? { ...user, name } : user
+    );
+    io.emit("userUpdates", connectedUsers);
+  });
+
+  socket.on("playVideo", (timestamp) => {
+    if (socket.id === conductorId) {
+      videoState = { isPlaying: true, currentTime: timestamp, lastUpdated: Date.now() };
+      socket.broadcast.emit("syncPlay", timestamp);
+    }
+  });
+
+  socket.on("pauseVideo", (timestamp) => {
+    if (socket.id === conductorId) {
+      videoState = { isPlaying: false, currentTime: timestamp, lastUpdated: Date.now() };
+      socket.broadcast.emit("syncPause", timestamp);
+    }
+  });  
+
+  socket.on("seekVideo", (timestamp) => {
+    if (socket.id === conductorId) {
+      videoState.currentTime = timestamp;
+      videoState.lastUpdated = Date.now();
+      socket.broadcast.emit("syncSeek", timestamp);
+    }
+  });
+  
+  socket.on("updateVideoState", (state) => {
+    if (socket.id === conductorId) {
+      videoState = { ...state, lastUpdated: Date.now() };
+    }
+  });
+
+  socket.on("addHighlight", (highlight) => {
+    highlights.push(highlight);
+    io.emit("highlightUpdates", highlights);
+  });
+
+  socket.on("disconnect", () => {
+    connectedUsers = connectedUsers.filter((user) => user.id !== socket.id);
+    io.emit("userUpdates", connectedUsers);
+
+    if (socket.id === conductorId) {
+      conductorId = connectedUsers.length ? connectedUsers[0].id : null;
+      io.emit("conductorAssigned", conductorId);
+    }
+
+    console.log(`Client disconnected: ${socket.id}`);
+  });
+});
 
 // *** S3 API ***
 const s3 = new AWS.S3({
@@ -97,7 +183,6 @@ app.post("/upload-video", upload.single('video'), async (req, res) => {
     });
   }
 });
-
 
 // GET VIDEO - S3
 app.get("/get-video-url/:fileKey", async (req, res) => {
@@ -275,7 +360,7 @@ export async function queryADatabaseGames( id ) {
           relation: {
             contains: id
           }
-        }
+        },
       ],
     },
 
@@ -426,8 +511,6 @@ app.get("/api/retrieve-a-page-game", async (req, res) => {
   }
 });
 
-
-
 // CREATE PAGE
 // https://developers.notion.com/reference/post-page
 export async function createAPage( name, url ) {
@@ -530,7 +613,6 @@ export async function createAPageGames( name, url, log ) {
   }
 }
 
-
 app.post("/api/create-a-page-games", async (req, res) => {
   const { name, url, log } = req.body; // Extract name and url from the request body.
 
@@ -542,6 +624,74 @@ app.post("/api/create-a-page-games", async (req, res) => {
   }
 });
 
+// CREATE A PAGE - VIDEOS
+export async function createAPageVideos( game_id, player_id, url ) {
+  const notion = new Client({ auth: TOKEN });
+
+  try {
+    const response = await notion.pages.create({
+      parent: {
+        type: "database_id",
+        database_id: DATABASE_ID_VIDEOS,
+      },
+      properties: {
+        Name: {
+          title: [
+            {
+              text: {
+                content: "Highlight",
+              },
+            },
+          ],
+        },
+        game_id: {
+          rich_text: [
+            {
+              text: {
+                content: game_id,
+              },
+            },
+          ],
+        },
+        player_id: {
+          rich_text: [
+            {
+              text: {
+                content: player_id,
+              },
+            },
+          ],
+        },
+        url: {
+          rich_text: [
+            {
+              text: {
+                content: url,
+              },
+            },
+          ],
+        },
+      },
+    });
+
+    // console.log("create-a-page-videos", response);
+    return response;
+  } catch (error) {
+    console.error("Error creating page in Notion:", error.message);
+    throw error;
+  }
+}
+
+app.post("/api/create-a-page-videos", async (req, res) => {
+  const { game_id, player_id, url } = req.body; // Extract name and url from the request body.
+
+  try {
+    const result = await createAPageVideos(game_id, player_id, url); // Call the createAPage function.
+    res.status(200).json(result); // Send the response back to the client.
+  } catch (error) {
+    res.status(500).json({ error: error.message }); // Handle errors and send a proper response.
+  }
+});
 
 // UPDATE PAGE PROPERTIES
 // https://developers.notion.com/reference/patch-page
@@ -580,7 +730,6 @@ export async function updatePageGames( pageId, url, log ) {
   }
 }
 
-
 app.patch("/api/update-a-page-games", async (req, res) => {
   const { pageId, url, log } = req.body; // Extract name and url from the request body.
 
@@ -591,3 +740,37 @@ app.patch("/api/update-a-page-games", async (req, res) => {
     res.status(500).json({ error: error.message }); // Handle errors and send a proper response.
   }
 });
+
+// RETRIEVE BLOCK CHILDREN
+// https://developers.notion.com/reference/get-block-children
+export async function retrieveBlockChildren(startCursor = null) {
+  const notion = new Client({ auth: TOKEN });
+
+  const params = {
+    block_id: "1bcafaf7b684802180fec114f9172faa",
+    page_size: 100,
+  };
+
+  // Include start_cursor if provided
+  if (startCursor) {
+    params.start_cursor = startCursor;
+  }
+
+  const response = await notion.blocks.children.list(params);
+  return response;
+}
+
+app.get("/api/retrieve-block-children", async (req, res) => {
+  const { start_cursor } = req.query; // Capture 'id' and 'start_cursor' from query parameters
+
+  try {
+    const response = await retrieveBlockChildren(start_cursor); // Pass start_cursor to retrieveBlockChildren
+    res.json(response); // Send the full response back to the client
+  } catch (error) {
+    console.error("Error in retrieve-block-children:", error); // Log the full error
+    res.status(500).json({ error: error.message });
+  }
+});
+
+const PORT = 8000;
+server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
