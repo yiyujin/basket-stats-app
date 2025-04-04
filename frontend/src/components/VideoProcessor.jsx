@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { FFmpeg } from "@ffmpeg/ffmpeg";
-import { fetchFile } from '@ffmpeg/util';
 
 export default function VideoProcessor() {
   const [status, setStatus] = useState("Initializing...");

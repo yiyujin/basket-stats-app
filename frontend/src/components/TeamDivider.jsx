@@ -1,6 +1,6 @@
 export default function TeamDivider( { text, length }){
     return(
-        <div style = { { display : "flex", flexDirection : "row", paddingTop : "40px" }}>
+        <div style = { { display : "flex", flexDirection : "row", paddingTop : "72px", paddingBottom : "8px" }}>
             <h2 style = { { flex : 1 } }>{ text } ({ length })</h2>
 
             <select style = { { marginBottom : "8px" } }>

@@ -7,6 +7,7 @@ export default function Nav(){
         { href: "/login", label: "Login", color : "red" },
         { href: "/about", label: "About", color : "red" },
         { href: "/releasenotes", label: "Release Notes", color : "red" },
+        { href: "/collective", label: "Collective", color : "red" },
     ];
 
     return(

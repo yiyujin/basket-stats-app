@@ -13,6 +13,9 @@ import Team from './pages/Team';
 import Game from './pages/Game';
 import ReleaseNotes from './pages/ReleaseNotes';
 import About from './pages/About';
+import Highlights from './pages/Highlights';
+import Collective from './pages/Collective';
+import GameItem from './pages/GameItem';
 
 export default function App (){
   const location = useLocation();
@@ -24,12 +27,18 @@ export default function App (){
 
         <Routes> 
           <Route path = "/login" element = { <Login/>}/>
+
           <Route path = "/" element = { <Home/>}/>
+
           <Route path = "/player/:id" element = { <Player/>}/>
           <Route path = "/team/:id" element = { <Team/>}/>
+          <Route path = "/gameitem/:id" element = { <GameItem/>}/>
+
           <Route path = "/game" element = { <Game/>}/>
+          <Route path = "/highlights" element = { <Highlights/>}/>
           <Route path = "/about" element = { <About/>}/>
           <Route path = "/releasenotes" element = { <ReleaseNotes/>}/>
+          <Route path = "/collective" element = { <Collective/>}/>
         </Routes>
       </div>
     </Twemoji>

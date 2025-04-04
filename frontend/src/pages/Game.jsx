@@ -1,4 +1,4 @@
-import { useLocation } from "react-router-dom";
+import { useLocation, Link } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import RecordingVideo from "../components/RecordingVideo";
 import VideoProcessor from "../components/VideoProcessor";
@@ -9,6 +9,7 @@ export default function Game() {
   const teamName = team.properties?.Name?.title?.[0]?.plain_text || "Unknown Team";
 
   const [data, setData] = useState([]); // playing players buttons
+  const [selectedId, setSelectedId] = useState(null);
 
   const [games, setGames] = useState([]);
   const [selectedGame, setSelectedGame] = useState("");
@@ -206,6 +207,7 @@ export default function Game() {
       }
 
       console.log("Success");
+      alert("Successfully updated DB with url and log");
     } catch (error) {
       console.error("Error posting url to DB:", error.message);
     }
@@ -285,7 +287,6 @@ export default function Game() {
     setProcessingVideo(false);
 };
 
-
   return (
     <div style = { { display : "flex", flexDirection : "row", paddingTop : "64px", width : "100vw", height : "100vh" } }>
       <div style = { { width : "200px", minWidth: "200px", height : "100%", overflow : "scroll", position : "fixed" } }>
@@ -314,15 +315,17 @@ export default function Game() {
           <button onClick = { uploadRecording } disabled = { !videoURL || uploading }>{ uploading ? "Uploading..." : "Upload Video to S3" }</button>
           <button onClick = { getVideo } disabled = {!uploadedVideoUrl}>Get Uploaded Video</button>
 
-          <button onClick = { () => updateGames(selectedGame, "aaa", "aaa") } disabled = { !videoURL || uploading }>Update DB with url and log</button>
+          <button onClick = { () => updateGames(selectedGame, uploadedVideoUrl, JSON.stringify(timestamps) ) } disabled = { !videoURL || uploading }>Update DB with url and log</button>
           <button onClick = { () => postToGames("Name test", uploadedVideoUrl, JSON.stringify(timestamps)) } disabled = { !videoURL || uploading }>POST to DB (Games)</button>
 
           <button onClick = { logTimestamp } disabled={!recording}>TEST Log Timestamp</button>
           <button onClick = { () => console.log(timestamps) } disabled = { timestamps.length === 0 }>Console.log Timestamp</button>
 
           <button onClick={processVideoClips} disabled={!blobData || timestamps.length === 0 || processingVideo || !videoProcessorRef.current?.isReady}>
-            {processingVideo ? "Processing Clips..." : "Process Video"}
+            { processingVideo ? "Processing Clips..." : "Process Video" }
           </button>
+
+          <Link to = "/highlights">Highlights</Link>
 
         </div>
 
@@ -347,13 +350,12 @@ export default function Game() {
         <p className="meta">Press Player for Highlight</p>
 
         <div style={{ display: "flex", flexDirection: "row", gap: "8px" }}>
-            {data.map((item, index) => (
+            { data.map((item, index) => (
                 <button key={item.id || index} onClick={() => logTimestamp(item.id, item.name)}>
                     {item.name}
                 </button>
             ))}
         </div>
-
 
         <hr/><br/><br/>
 
@@ -361,42 +363,29 @@ export default function Game() {
         <p className="meta">Select Players</p>
 
         {/* Players List */}
-        <div style={{ display: "flex", flexDirection: "row", gap: "8px", width : "100%", overflow : "scroll" }}>
-            {players.map((item, index) => {
-                const playerName = item.properties?.Name?.title?.[0]?.plain_text || "Unnamed Player";
-                const firstName = item.properties?.first_name?.rich_text?.[0]?.plain_text || "";
-                const lastName = item.properties?.last_name?.rich_text?.[0]?.plain_text || "";
-                const backNumber = item.properties?.back_number?.rich_text?.[0]?.plain_text || "N/A";
+        <div style = { { display: "flex", flexDirection: "row", gap: "8px", width : "100%", overflow : "scroll" } }>
+          { players.map((item, index) => {
+            const playerName = item.properties?.Name?.title?.[0]?.plain_text || "Unnamed Player";
+            const firstName = item.properties?.first_name?.rich_text?.[0]?.plain_text || "";
+            const lastName = item.properties?.last_name?.rich_text?.[0]?.plain_text || "";
+            const backNumber = item.properties?.back_number?.rich_text?.[0]?.plain_text || "N/A";
 
-                return (
-                    <div key={item.id || index} style={{ backgroundColor: "var(--black8)", padding: "8px" }}>
-                        <div style={{
-                            width : "80px",
-                            height: "80px",
-                            border: "1px solid var(--black8)",
-                            backgroundPosition: "center",
-                            backgroundImage: "url(https://www.tottenhamhotspur.com/media/5y3crbxe/firstteam_profiles_mickyvandeven_202425_1.png?anchor=center&mode=crop&quality=90&width=500)",
-                            backgroundSize: "cover"
-                        }} />
-                        <p className="number">{backNumber}</p>
-                        <p>{playerName}</p>
-                        <p className="meta" style={{ whiteSpace: "normal", wordWrap: "break-word", overflowWrap: "break-word" }}>
-                            {firstName} {lastName}
-                        </p>
-                        <input
-                            type="checkbox"
-                            onChange={() =>
-                                handleCheckboxChange({
-                                    id: item.id,
-                                    name: item.properties?.Name?.title?.[0]?.plain_text || "Unknown",
-                                })
-                            }
-                            checked={data.some((p) => p.id === item.id)}
-                        />
-
-                    </div>
-                );
-            })}
+            return (
+                <button className = { `player-button ${ data.some((p) => p.id === item.id) ? 'selected' : '' }` } onClick = { () => handleCheckboxChange({ id: item.id, name: item.properties?.Name?.title?.[0]?.plain_text }) } key = { index }>
+                    <div style = {{
+                        width : "80px",
+                        height: "80px",
+                        border: "1px solid var(--black8)",
+                        backgroundPosition: "center",
+                        backgroundImage: `url(${item.properties.profile_picture?.rich_text[0]?.plain_text})` || "url(https://am-a.akamaihd.net/image?resize=375:&f=http://static.lolesports.com/players/silhouette.png)",
+                        backgroundSize: "cover"
+                    }} />
+                    <p className = "number">{ backNumber }</p>
+                    <p>{ playerName }</p>
+                    <p className = "meta" style = { { whiteSpace: "normal", wordWrap: "break-word", overflowWrap: "break-word" } }> { firstName } { lastName }</p>
+                </button>
+            );
+          })}
         </div>
     </div>
     </div>

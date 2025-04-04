@@ -1,5 +1,12 @@
+import VideoProcessor from '../components/VideoProcessor';
+
 export default function About(){
   return(
-    <h1>About 🐞</h1>
+    <div className = "page">
+      <h1>About 🐞</h1>
+
+      <VideoProcessor/>
+    </div>
+    
   )
 }
