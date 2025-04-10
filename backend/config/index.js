@@ -12,6 +12,9 @@ export const DATABASE_ID_POSITIONS = process.env.DATABASE_ID_POSITIONS;
 
 export const DATABASE_ID_HIGHLIGHTS = process.env.DATABASE_ID_HIGHLIGHTS;
 
+export const PAGE_ID_ABOUT = process.env.PAGE_ID_ABOUT;
+export const PAGE_ID_RELEASE = process.env.PAGE_ID_RELEASE;
+
 export const AWS_ACCESS_KEY_ID = process.env.AWS_ACCESS_KEY_ID;
 export const AWS_SECRET_ACCESS_KEY = process.env.AWS_SECRET_ACCESS_KEY;
 export const AWS_REGION = process.env.AWS_REGION;

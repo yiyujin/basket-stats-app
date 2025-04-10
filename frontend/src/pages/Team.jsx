@@ -110,9 +110,9 @@ export default function Team(){
 
     useEffect(() => {
       if (data && players) {
-        fetchGames(id, data);
+        fetchGames(id);
       }
-    }, [data, players]);
+    }, [data, players, id]);
 
     const allLoaded =
       data &&
@@ -125,12 +125,14 @@ export default function Team(){
     useEffect(() => {
       if (allLoaded) {
         setLoading(false);
+        console.log('loading to false');
       }
     }, [allLoaded]);
 
     return (
       <>
         { loading ? <Loading/> :
+
         <div>
           
           <div style = { { paddingTop : "56px" } }>

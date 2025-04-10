@@ -387,13 +387,13 @@ input:focus, button:focus {
     padding-left : 40px;
 
     align-items: center;
-    /* justify-content: center; */
 
     background-color : var(--pt0);
     color : white;
 
-    font-weight: 500;
-    font-family : var(--font-Barlow);
+    font-weight: 400;
+    font-family : var(--font-Inter);
+    font-size: var(--font-size-tiny);
 
     border-bottom : 1px solid var(--black40);
 }

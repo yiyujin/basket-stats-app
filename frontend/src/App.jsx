@@ -16,6 +16,7 @@ import About from './pages/About';
 import Highlights from './pages/Highlights';
 import Collective from './pages/Collective';
 import GameItem from './pages/GameItem';
+import LiftCounter from './pages/LiftCounter';
 
 export default function App (){
   const location = useLocation();
@@ -39,6 +40,8 @@ export default function App (){
           <Route path = "/about" element = { <About/>}/>
           <Route path = "/releasenotes" element = { <ReleaseNotes/>}/>
           <Route path = "/collective" element = { <Collective/>}/>
+
+          <Route path = "/liftcounter" element = { <LiftCounter/>}/>
         </Routes>
       </div>
     </Twemoji>

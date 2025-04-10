@@ -1,4 +1,4 @@
-import { TOKEN, DATABASE_ID_PLAYERS, DATABASE_ID_TEAMS, DATABASE_ID_VIDEOS, DATABASE_ID_GAMES, DATABASE_ID_SPORTS, DATABASE_ID_POSITIONS, DATABASE_ID_HIGHLIGHTS } from './config/index.js';
+import { TOKEN, DATABASE_ID_PLAYERS, DATABASE_ID_TEAMS, DATABASE_ID_VIDEOS, DATABASE_ID_GAMES, DATABASE_ID_SPORTS, DATABASE_ID_POSITIONS, DATABASE_ID_HIGHLIGHTS, PAGE_ID_ABOUT, PAGE_ID_RELEASE } from './config/index.js';
 import { AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION, AWS_BUCKET_NAME } from './config/index.js';
 
 import "dotenv/config";
@@ -939,7 +939,7 @@ export async function retrieveBlockChildren(startCursor = null) {
   const notion = new Client({ auth: TOKEN });
 
   const params = {
-    block_id: "1bcafaf7b684802180fec114f9172faa",
+    block_id: PAGE_ID_ABOUT,
     page_size: 100,
   };
 
@@ -964,5 +964,31 @@ app.get("/api/retrieve-block-children", async (req, res) => {
   }
 });
 
+export async function retrieveBlockChildrenRelease() {
+  const notion = new Client({ auth: TOKEN });
+
+  const params = {
+    block_id: PAGE_ID_RELEASE,
+    page_size: 100,
+  };
+
+  const response = await notion.blocks.children.list(params);
+  return response;
+}
+
+app.get("/api/retrieve-block-children-release", async (req, res) => {
+  try {
+    const response = await retrieveBlockChildrenRelease(); // Pass start_cursor to retrieveBlockChildren
+    res.json(response); // Send the full response back to the client
+  } catch (error) {
+    console.error("Error in retrieve-block-children:", error); // Log the full error
+    res.status(500).json({ error: error.message });
+  }
+});
+
+
+
+
+// RUN SERVER
 const PORT = 8000;
 server.listen(PORT, () => console.log(`Server running on port ${PORT}`));

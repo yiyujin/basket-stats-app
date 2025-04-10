@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 
 import Loading from "../components/Loading";
+import GameChip from "../components/GameChip";
 
 const YouTubePlayer = ({ videoId, onPlayerReady }) => {
   const playerRef = useRef(null);
@@ -92,6 +93,7 @@ export default function GameItem() {
       }
   
       const result = await response.json();
+      console.log(result.properties);
       setGame(result.properties);
       setVideoId(result.properties.youtube_id.rich_text[0].plain_text);
     } catch (error) {
@@ -321,15 +323,42 @@ export default function GameItem() {
         handleCommentChange(index, "");
       }
     }
-  };  
+  };
 
   return (
     <>
     { loading ? <Loading/> : 
-    <div style = { { display: "flex", flexDirection: "row", paddingTop: "64px", width: "100vw", height: "100vh" } }>
-    
-      <div style = { { flex: 1, padding: "0px 16px" } }>
-        <h2>{ game.team1?.rich_text[0].plain_text } vs { game.team2?.rich_text[0].plain_text }</h2>
+    <div style = { { paddingTop : "80px" } }>
+
+      <div style = { { width : "100%", display : "flex", flexDirection : "column", alignItems : "center" } }>
+        <div style = { { width : "", display : "flex", flexDirection : "row", gap : "40px", alignItems : "" } }>
+          <div style = { { display : "flex", flexDirection : "column", gap : "8px" } }>
+            <h2>{ game.team1?.rich_text[0].plain_text }</h2>
+            <GameChip timestamp = "7:41" player = "하댕" reverse/>
+            <GameChip timestamp = "11:26" player = "하댕" reverse/>
+            <GameChip timestamp = "25:21" player = "2번" reverse/>
+          </div>
+          
+          <div style = { { width : "72px", margin : "0px 8px" } }>
+            <div style = { { backgroundColor : "var(--black4)", textAlign : "center", borderRadius : "var(--br)" }}>
+              <h2 className = "number" style = { { fontSize : "var(--font-size-large)"} }>{ game.score.rich_text[0]?.plain_text }</h2>
+            </div>
+          </div>
+
+          <div style = { { display : "flex", flexDirection : "column", gap : "8px" } }>
+            <h2>{ game.team2?.rich_text[0].plain_text }</h2>
+            <GameChip timestamp = "9:52" player = "26번"/>
+            <GameChip timestamp = "15:12" player = "26번"/>
+          </div>
+        </div>
+      </div>
+
+      <hr/>
+
+
+    <div style = { { display: "flex", flexDirection: "row", marginTop : "80px", padding: "0px 16px", width: "100vw", height: "100vh", gap : "16px" } }>
+      <div style = { { flex: 1 } }>
+        <h2>Highlight</h2>
         <p className = "meta">For Analysis. Press the Highlight button to record timestamps. Add comments.</p>
 
         <YouTubePlayer videoId={videoId} onPlayerReady={setPlayer} />
@@ -343,7 +372,7 @@ export default function GameItem() {
         <input type = "text" value = { name } onChange = { (e) => setName(e.target.value) } placeholder="Your Name"/>
       </div>
 
-      <div style = { { gap: "16px", width: "30%", padding: "16px", display: "flex", flexDirection: "column", overflowY: "auto" } }>
+      <div style = { { gap: "16px", width: "30%", display: "flex", flexDirection: "column", overflowY: "auto" } }>
         <h2>Commentary</h2>
 
         <div>
@@ -381,6 +410,7 @@ export default function GameItem() {
           )) : <p className = "meta">No highlight stamps.</p>}
         </div>
       </div>
+    </div>
     </div>
 }</>
   );
