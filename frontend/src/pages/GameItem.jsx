@@ -411,7 +411,7 @@ export default function GameItem() {
         </div>
       </div>
     </div>
-    </div>
+  </div>
 }</>
   );
 }
