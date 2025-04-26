@@ -37,9 +37,10 @@ export default function Team(){
       }
   
       const result = await response.json();
-      // console.log("result", result);
+      console.log("result", result);
+
       setData(result);
-      setTeamPhoto(result.properties.photo.rich_text[0].plain_text);
+      setTeamPhoto(result.cover?.file.url);
       setTeamColor(result.properties?.color.rich_text[0].plain_text || 'transparent');
     } catch (error) {
       console.error("Error fetching data:", error.message);
@@ -173,7 +174,7 @@ export default function Team(){
         <div>
           
           <div style = { { paddingTop : "56px" } }>
-            <div style = { { overflow : "hidden", position : "absolute", zIndex : "-1", width : "100%", height : "400px", backgroundSize : "cover", backgroundPosition : "top", backgroundRepeat : "no-repeat", backgroundImage : `url(${teamPhoto})` } }>
+            <div style = { { overflow : "hidden", position : "absolute", zIndex : "-1", width : "100%", height : "400px", backgroundSize : "cover", backgroundPosition : "center", backgroundRepeat : "no-repeat", backgroundImage : `url(${teamPhoto})` } }>
             <span style = { { position: "absolute", top: "-25%", left: "40%", width: "200%", height: "400%", backgroundColor: teamColor, transform: "rotate(-20deg)", zIndex: -2, opacity : 0.25 } }></span>
             </div>
           </div>
@@ -223,7 +224,7 @@ export default function Team(){
                         data={game}
                         team={data}
                         players={players}
-                        highlightsLen={gameHighlights[game.id] || 0} // Pass the highlight count
+                        highlightsLen={gameHighlights[game.id] || 0}
                       />
                     ))} 
                   </div>                 
@@ -233,11 +234,11 @@ export default function Team(){
                       <p>{ item.properties.team1.rich_text[0]?.plain_text } vs { item.properties.team2.rich_text[0]?.plain_text }</p>
 
                         <div style = { { display : "flex", flexDirection : "row", gap : "4px", alignItems : "center" } }>
-                            <EventAvailable style = { { fontSize: '14px' } }/>
-                            <p className = "meta">{ item.properties.Date.date.start }</p>
+                          <EventAvailable style = { { fontSize: '14px' } }/>
+                          <p className = "meta">{ item.properties.Date.date.start }</p>
                         </div>
 
-                      <Link to = {`/gameitem/${item.id}`}>
+                      <Link to = {`/gameitem/${item.id}`} state = { id }>
                           <IconButton icon = { ArrowForward }/>
                       </Link>
                     </div>

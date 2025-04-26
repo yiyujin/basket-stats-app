@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useLocation } from "react-router-dom";
 
 import Loading from "../components/Loading";
 import GameChip from "../components/GameChip";
@@ -79,6 +79,13 @@ export default function GameItem() {
   const [game, setGame] = useState([]);
   const [videoId, setVideoId] = useState("");
 
+  const location = useLocation();
+  const players = location.state;
+  
+  // GOAL
+  const [type, setType] = useState("");
+  const [goaler, setGoaler] = useState("");
+
   const fetchGame = async (id) => {
     try {
       const response = await fetch(`http://localhost:8000/api/retrieve-a-page-team?id=${id}`, {
@@ -93,7 +100,7 @@ export default function GameItem() {
       }
   
       const result = await response.json();
-      console.log(result.properties);
+      // console.log(result.properties);
       setGame(result.properties);
       setVideoId(result.properties.youtube_id.rich_text[0].plain_text);
     } catch (error) {
@@ -124,8 +131,11 @@ export default function GameItem() {
         timeInSeconds: parseInt(highlight.properties.time_in_seconds.rich_text[0]?.plain_text),
         name: highlight.properties.created_by.rich_text[0]?.plain_text,
         comments: highlight.properties.comments.rich_text[0]?.plain_text ? 
-          JSON.parse(highlight.properties.comments.rich_text[0].plain_text) : []
-      }));
+          JSON.parse(highlight.properties.comments.rich_text[0].plain_text) : [],
+        type : highlight.properties.type.rich_text[0]?.plain_text,
+        goaler : highlight.properties.goaler.rich_text[0]?.plain_text,
+        })
+      );
       
       setHighlights(formattedHighlights);
     } catch (error) {
@@ -149,7 +159,9 @@ export default function GameItem() {
             time: highlight.time,
             time_in_seconds: String(Math.floor(highlight.timeInSeconds)),
             created_by: highlight.name,
-            comments: JSON.stringify(highlight.comments), // Store as raw JSON string
+            type: highlight.type,
+            goaler: highlight.goaler,
+            comments: JSON.stringify(highlight.comments),
           },
         }),
       });
@@ -160,7 +172,7 @@ export default function GameItem() {
   
       const result = await response.json();
       console.log("Highlight saved:", result);
-      return result.id; // Return the pageId
+      return result.id;
     } catch (err) {
       console.error("Error:", err);
       return null;
@@ -190,7 +202,7 @@ export default function GameItem() {
       }
   
       const result = await response.json();
-      console.log("Comments updated:", result);
+      console.log("Comments updated");
       return true;
     } catch (err) {
       console.error("Error updating comments:", err);
@@ -198,11 +210,41 @@ export default function GameItem() {
     }
   }
 
+  const updateHighlightTypeAndGoaler = async (pageId, type, goaler) => {
+    if (!pageId) {
+      console.warn("No pageId found for this highlight. Skipping update.");
+      return false;
+    }
+    
+    try {
+      const response = await fetch("http://localhost:8000/api/update-a-page-highlights-type", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          pageId,
+          type,
+          goaler
+        }),
+      });
+  
+      if (!response.ok) {
+        throw new Error("Failed to update type and goaler");
+      }
+  
+      const result = await response.json();
+      console.log("Type and goaler updated:", result);
+      return true;
+    } catch (err) {
+      console.error("Error updating type and goaler:", err);
+      return false;
+    }
+  };  
+
   const [player, setPlayer] = useState(null);
   const [name, setName] = useState("");
   const [highlights, setHighlights] = useState([]);
-
-  // Track input values for each highlight
   const [highlightInputs, setHighlightInputs] = useState({});
 
   // Initialize data on load
@@ -210,6 +252,7 @@ export default function GameItem() {
     const initializeData = async () => {
       await fetchGame(id);
       await fetchHighlights(id);
+      await fetchPlayers(team);
     };
     
     if (id) {
@@ -243,6 +286,8 @@ export default function GameItem() {
       time: timeString,
       timeInSeconds: Math.floor(currentTime),
       name: name,
+      type: type,
+      goaler: goaler,
       comments: [],
     };
   
@@ -326,92 +371,148 @@ export default function GameItem() {
   };
 
   return (
-    <>
-    { loading ? <Loading/> : 
-    <div style = { { paddingTop : "80px" } }>
+    <> { loading ? <Loading/> : 
+      <div style = { { paddingTop : "80px" } }>
 
-      <div style = { { width : "100%", display : "flex", flexDirection : "column", alignItems : "center" } }>
-        <div style = { { width : "", display : "flex", flexDirection : "row", gap : "40px", alignItems : "" } }>
-          <div style = { { display : "flex", flexDirection : "column", gap : "8px" } }>
-            <h2>{ game.team1?.rich_text[0].plain_text }</h2>
-            <GameChip timestamp = "7:41" player = "하댕" reverse/>
-            <GameChip timestamp = "11:26" player = "하댕" reverse/>
-            <GameChip timestamp = "25:21" player = "2번" reverse/>
-          </div>
-          
-          <div style = { { width : "72px", margin : "0px 8px" } }>
-            <div style = { { backgroundColor : "var(--black4)", textAlign : "center", borderRadius : "var(--br)" }}>
-              <h2 className = "number" style = { { fontSize : "var(--font-size-large)"} }>{ game.score.rich_text[0]?.plain_text }</h2>
+        <div style = { { width : "100%", display : "flex", flexDirection : "column", alignItems : "center" } }>
+          <div style = { { width : "", display : "flex", flexDirection : "row", gap : "40px", alignItems : "" } }>
+            <div style = { { display : "flex", flexDirection : "column", gap : "8px" } }>
+              <h2>{ game.team1?.rich_text[0].plain_text }</h2>
+              { highlights.map((item, index) =>
+                item.type === "Goal" && item.goaler !== "Opponent" ? (
+                  <div key={index}>
+                    <GameChip item = { item } reverse seekToTime={seekToTime} />
+                  </div>
+                ) : null
+              )}
+
             </div>
-          </div>
+            
+            <div style = { { width : "72px", margin : "0px 8px" } }>
+              <div style = { { backgroundColor : "var(--black4)", textAlign : "center", borderRadius : "var(--br)" }}>
+                <h2 className = "number" style = { { fontSize : "var(--font-size-large)"} }>{ game.score.rich_text[0]?.plain_text }</h2>
+              </div>
+            </div>
 
-          <div style = { { display : "flex", flexDirection : "column", gap : "8px" } }>
-            <h2>{ game.team2?.rich_text[0].plain_text }</h2>
-            <GameChip timestamp = "9:52" player = "26번"/>
-            <GameChip timestamp = "15:12" player = "26번"/>
+            <div style = { { display : "flex", flexDirection : "column", gap : "8px" } }>
+              <h2>{ game.team2?.rich_text[0].plain_text }</h2>
+              { highlights.map((item, index) =>
+                item.type === "Goal" && item.goaler === "Opponent" ? (
+                  <div key={index}>
+                    <GameChip item = { item } seekToTime={seekToTime} />
+                  </div>
+                ) : null
+              )}
+            </div>
           </div>
         </div>
-      </div>
 
-      <hr/>
+        <hr/>
 
 
-    <div style = { { display: "flex", flexDirection: "row", marginTop : "80px", padding: "0px 16px", width: "100vw", height: "100vh", gap : "16px" } }>
-      <div style = { { flex: 1 } }>
-        <h2>Highlight</h2>
-        <p className = "meta">For Analysis. Press the Highlight button to record timestamps. Add comments.</p>
+      <div style = { { display: "flex", flexDirection: "row", marginTop : "80px", padding: "0px 16px", width: "100vw", height: "100vh", gap : "16px" } }>
+        <div style = { { flex: 1 } }>
+          <h2>Highlight</h2>
+          <p className = "meta">For Analysis. Press the Highlight button to record timestamps. Add comments.</p>
 
-        <YouTubePlayer videoId={videoId} onPlayerReady={setPlayer} />
+          <YouTubePlayer videoId={videoId} onPlayerReady={setPlayer} />
 
-        <br/>
+          <br/>
 
-        <button onClick = { handleLogTimestamp } style = {{ width: "100%", height: "56px", marginBottom: "8px", backgroundColor: "var(--black4)", color: "black", border: "1px solid ", borderRadius: "4px", cursor: "pointer", fontWeight: "bold" }} >
-          Highlight Current Timestamp
-        </button>
+          <button onClick = { handleLogTimestamp } style = {{ width: "100%", height: "56px", marginBottom: "8px", backgroundColor: "var(--black4)", color: "black", border: "1px solid ", borderRadius: "4px", cursor: "pointer", fontWeight: "bold" }} >
+            Highlight Current Timestamp
+          </button>
 
-        <input type = "text" value = { name } onChange = { (e) => setName(e.target.value) } placeholder="Your Name"/>
-      </div>
+          <input type = "text" value = { name } onChange = { (e) => setName(e.target.value) } placeholder="Your Name"/>
+        </div>
 
-      <div style = { { gap: "16px", width: "30%", display: "flex", flexDirection: "column", overflowY: "auto" } }>
-        <h2>Commentary</h2>
+        <div style = { { gap: "16px", width: "30%", display: "flex", flexDirection: "column", overflowY: "auto" } }>
+          <h2>Commentary</h2>
 
-        <div>
-          { highlights.length > 0 ? highlights.map( ( item, index ) => (
-            <div key = { index } style = { { marginBottom: "12px", padding: "16px 12px", borderRadius: "8px", border : "1.5px solid rgba(var(--pt3), 0.16)" } }>
-              <div style = { { display: "flex", alignItems: "center", gap: "8px", justifyContent: "space-between", paddingBottom : "8px" } }>
+          <div>
+            { highlights.length > 0 ? highlights.map( ( item, index ) => (
+              <div key = { index } style = { { marginBottom: "12px", padding: "16px 12px", borderRadius: "8px", border : "1.5px solid rgba(var(--pt3), 0.16)" } }>
+                <div style = { { display: "flex", alignItems: "center", gap: "8px", justifyContent: "space-between", paddingBottom : "8px" } }>
+                  
+                <div style = { { display: "flex", alignItems: "center", gap: "8px" } }>
+                  <button onClick = { () => seekToTime(item.timeInSeconds) } style = { { padding: "2px 8px", borderRadius: "4px", backgroundColor: "rgba(var(--pt3), 1.0)", fontWeight : "600", color: "white", border: "none", cursor: "pointer", }}>
+                    { item.time }
+                  </button>
+
+                  <span className = "meta">by</span>
+                  <span style = { { fontSize : "var(--font-size-tiny)", marginLeft : "-4px"} }>{ item.name }</span>
+
+                  <div style={{ width: "60px", display: "flex", flexDirection: "row", gap : "4px" }}>
+                    <select 
+                      id={`type-${index}`} 
+                      value={item.type || ""} 
+                      onChange={async (e) => {
+                        const newType = e.target.value;
+                        // Update local state
+                        const updatedHighlights = [...highlights];
+                        updatedHighlights[index].type = newType;
+                        setHighlights(updatedHighlights);
+                        
+                        // Update in Notion
+                        await updateHighlightTypeAndGoaler(item.pageId, newType, item.goaler);
+                      }}
+                    >
+                      <option value="" disabled>Type</option>
+                      <option value="Goal">Goal</option>
+                      <option value="Save">Save</option>
+                      <option value="Foul">Foul</option>
+                    </select>
+
+                    <select 
+                      id={`goaler-${index}`} 
+                      value={item.goaler || ""} 
+                      onChange={async (e) => {
+                        const newGoaler = e.target.value;
+                        // Update local state
+                        const updatedHighlights = [...highlights];
+                        updatedHighlights[index].goaler = newGoaler;
+                        setHighlights(updatedHighlights);
+                        
+                        // Update in Notion
+                        await updateHighlightTypeAndGoaler(item.pageId, item.type, newGoaler);
+                      }}
+                    >
+                      <option value="" disabled>Player</option>
+                      {players.map((player, pidx) =>
+                        <option key={pidx} value={`${player.properties.back_number.rich_text[0].plain_text} - ${player.properties.first_name.rich_text[0].plain_text} ${player.properties.last_name.rich_text[0].plain_text}`}>
+                          {player.properties.back_number.rich_text[0].plain_text} - {player.properties.first_name.rich_text[0].plain_text} {player.properties.last_name.rich_text[0].plain_text}
+                        </option>
+                      )}
+                      <option value="Team">Team</option>
+                      <option value="Opponent">Opponent</option>
+                    </select>
+                  </div>
+
+                </div>
+
+                  <span className = "meta" style = { { flex : "flex-end"} }>{ item.comments.length } comment{ item.comments.length !== 1 ? 's' : '' }</span>
+                </div>
                 
-              <div style = { { display: "flex", alignItems: "center", gap: "8px" } }>
-                <button onClick = { () => seekToTime(item.timeInSeconds) } style = { { padding: "2px 8px", borderRadius: "4px", backgroundColor: "rgba(var(--pt3), 1.0)", fontWeight : "600", color: "white", border: "none", cursor: "pointer", }}>
-                  { item.time }
-                </button>
-
-                <span className = "meta">by</span>
-                <span style = { { fontSize : "var(--font-size-tiny)", marginLeft : "-4px"} }>{ item.name }</span>
+              { item.comments.map( ( comment, cIndex ) => (
+                <div key = { cIndex } style = { { padding: "8px 0px" } }>
+                  <span style = {{ fontWeight: "bold", fontSize: "var(--font-size-tiny)" }}>{ comment.name }</span>
+                  <p style = { { fontSize: "var(--font-size-small)", paddingTop : "4px" }}>{ comment.comment }</p>
+                </div>
+                ))
+              }
+                
+              <input type = "text" className = "input-comment"
+                value = { highlightInputs[index] || "" }
+                onChange = { (e) => handleCommentChange(index, e.target.value) }
+                onKeyPress = { (e) => handleCommentKeyPress(index, e) }
+                placeholder = "Add a comment (Enter)"
+              />
               </div>
-
-                <span className = "meta" style = { { flex : "flex-end"} }>{ item.comments.length } comment{ item.comments.length !== 1 ? 's' : '' }</span>
-              </div>
-              
-            { item.comments.map( ( comment, cIndex ) => (
-              <div key = { cIndex } style = { { padding: "8px 0px" } }>
-                <span style = {{ fontWeight: "bold", fontSize: "var(--font-size-tiny)" }}>{ comment.name }</span>
-                <p style = { { fontSize: "var(--font-size-small)", paddingTop : "4px" }}>{ comment.comment }</p>
-              </div>
-              ))
-            }
-              
-            <input type = "text" className = "input-comment"
-              value = { highlightInputs[index] || "" }
-              onChange = { (e) => handleCommentChange(index, e.target.value) }
-              onKeyPress = { (e) => handleCommentKeyPress(index, e) }
-              placeholder = "Add a comment (Enter)"
-            />
-            </div>
-          )) : <p className = "meta">No highlight stamps.</p>}
+            )) : <p className = "meta">No highlight stamps.</p>}
+          </div>
         </div>
       </div>
     </div>
-  </div>
-}</>
+    }</>
   );
 }

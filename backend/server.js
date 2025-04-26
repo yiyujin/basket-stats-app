@@ -932,6 +932,52 @@ app.patch("/api/update-a-page-highlights", async (req, res) => {
   }
 });
 
+// UPDATE HIGHLIGHT - TYPE, GOALER
+export async function updatePageHighlightsType( pageId, type, goaler ) {
+  const notion = new Client({ auth: TOKEN });
+
+  try {
+    const response = await notion.pages.update({
+      page_id : pageId,
+      properties: {
+        type: {
+          rich_text: [
+            {
+              text: {
+                content: type,
+              },
+            },
+          ],
+        },
+        goaler: {
+          rich_text: [
+            {
+              text: {
+                content: goaler,
+              },
+            },
+          ],
+        },
+      },
+    });
+
+    return response;
+  } catch (error) {
+    console.error("Error creating page in Notion:", error.message);
+    throw error;
+  }
+}
+
+app.patch("/api/update-a-page-highlights-type", async (req, res) => {
+  const { pageId, type, goaler } = req.body;
+
+  try {
+    const result = await updatePageHighlightsType(pageId, type, goaler);
+    res.status(200).json(result);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
 
 // RETRIEVE BLOCK CHILDREN
 // https://developers.notion.com/reference/get-block-children
