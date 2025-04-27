@@ -62,8 +62,8 @@ export default function YouTubePlayer( { videoId, onPlayerReady } ){
   }, [videoId, onPlayerReady]);
 
   return (
-    <div style={{ position: "relative", paddingTop: "56.25%", width: "100%" }}>
-      <div id="player" style ={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%" }} />
+    <div style = { { position: "relative", paddingTop: "56.25%", width: "100%" } }>
+      <div id = "player" style = { { position: "absolute", top: 0, left: 0, width: "100%", height: "100%" } } />
     </div>
   );
 };

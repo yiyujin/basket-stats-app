@@ -9,7 +9,7 @@
     --font-size-medium : 18px;
     --font-size-small : 16px;
     --font-size-tiny : 14px;
-    --font-size-teeny : 12px;
+    --font-size-teeny : 11px;
 
     /* weight : 400 - 900 */
     --font-Inter : 'Inter';
@@ -23,7 +23,6 @@
     --pt2 : #ffa600;
 
     --pt0 : #38003c;
-    --pt3 : 56, 0, 60;
 
     --black100 : rgba(0, 0, 0, 0.88);
     --black80 : rgba(0, 0, 0, 0.64);
@@ -90,17 +89,14 @@ hr {
 
 h1 {
     /* font-size : var(--font-size-large); */
-    font-weight : 700;
 }
 
 h2 {
     font-size : var(--font-size-large);
-    font-weight : 600;
 }
 
 h3 {
     font-size : var(--font-size-medium);
-    font-weight : 750;
 }
 
 p {
@@ -108,15 +104,55 @@ p {
     font-weight: 600;
 }
 
+.number {
+    font-size : var(--font-size-small);
+    font-weight : 750;
+}
+
+button:hover {
+    opacity: 0.5;
+}
+
+input {
+    padding : 4px 8px;
+    border : 1px solid var(--black16);
+    border-radius : var(--br);
+}
+
+.commentName {
+    display: inline;
+
+    font-size : var(--font-size-tiny);
+    font-weight: 800;
+    
+    margin-right: 4px;
+}
+
+.commentContent {
+    display: inline;
+
+    font-size : var(--font-size-tiny);
+    font-weight: 400;
+    margin: 0;
+}
+
 select {
-    background-color : var(--black8);
+    background-color : var(--black4);
     color : var(--black40);
     padding : 4px;
-    
-    width : 80px;
 
     border-radius: 4px;
     border : 0px;
+
+    font-size : var(--font-size-teeny);
+}
+
+a:hover {
+    opacity : 0.25;
+}
+
+.select {
+    width : 80px;
 }
 
 video {
@@ -371,12 +407,15 @@ input:focus, button:focus {
     font-weight: 600;
 }
 
-.chip {
-    font-weight : 800;
-    font-size : var(--font-size-tiny);
-    font-style : italic;
+.description {
+    font-size : 12px;
+    font-weight: 400;
+}
 
-    padding : 0px 16px;
+.chip {
+    font-size : var(--font-size-teeny);
+    font-weight: 750;
+    /* font-style : italic; */
 }
 
 /* NAV */
@@ -436,11 +475,6 @@ input:focus, button:focus {
     width : 20px;
     height : 20px;
     object-fit: contain;
-}
-
-.number {
-    font-weight : 750;
-    font-size : var(--font-size-small);
 }
 
 .profile-image {

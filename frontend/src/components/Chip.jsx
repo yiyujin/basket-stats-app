@@ -16,12 +16,13 @@ export default function Chip({ text, color }) {
             style={{
                 display: "flex",
                 justifyContent: "center",
-                backgroundColor: validColor ? hexToRgba(validColor, 0.16) : "transparent",
+                backgroundColor: validColor ? hexToRgba(validColor, 0.08) : "transparent",
                 color: validColor || "inherit",
-                border: `1px solid ${validColor ? hexToRgba(validColor, 0.16) : "transparent"}`,
+                border: `1px solid ${validColor ? hexToRgba(validColor, 0.12) : "transparent"}`,
+                borderRadius : "var(--br)"
             }}
         >
-            <p className="chip" style={{ padding: "0px 16px" }}>{text}</p>
+            <p className="chip" style={{ padding: "2px 8px" }}>{ text }</p>
         </div>
     );
 }

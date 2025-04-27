@@ -1,76 +1,9 @@
 import React, { useEffect, useRef, useState } from "react";
-import { useParams, useLocation } from "react-router-dom";
+import { useParams, useLocation, Link } from "react-router-dom";
 
 import Loading from "../components/Loading";
 import GameChip from "../components/GameChip";
-
-const YouTubePlayer = ({ videoId, onPlayerReady }) => {
-  const playerRef = useRef(null);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(0);
-  const intervalRef = useRef(null); // Track interval to clear it later
-
-  useEffect(() => {
-    const loadYouTubeAPI = () => {
-      if (window.YT && window.YT.Player) {
-        initializePlayer();
-        return;
-      }
-
-      window.onYouTubeIframeAPIReady = initializePlayer;
-
-      if (!document.querySelector("script[src='https://www.youtube.com/iframe_api']")) {
-        const script = document.createElement("script");
-        script.src = "https://www.youtube.com/iframe_api";
-        script.async = true;
-        document.body.appendChild(script);
-      }
-    };
-
-    const initializePlayer = () => {
-      if (!videoId) return;
-
-      playerRef.current = new YT.Player("player", {
-        width: "100%",
-        height: "100%",
-        videoId,
-        playerVars: {
-          autoplay: 0,
-          controls: 1,
-          rel: 0,
-          fs: 1,
-        },
-        events: {
-          onReady: (event) => {
-            onPlayerReady(event.target);
-            setDuration(event.target.getDuration());
-
-            intervalRef.current = setInterval(() => {
-              setCurrentTime(event.target.getCurrentTime());
-            }, 1000);
-          },
-        },
-      });
-    };
-
-    loadYouTubeAPI();
-
-    return () => {
-      if (playerRef.current) {
-        playerRef.current.destroy();
-      }
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
-    };
-  }, [videoId, onPlayerReady]);
-
-  return (
-    <div style={{ position: "relative", paddingTop: "56.25%", width: "100%" }}>
-      <div id="player" style ={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%" }} />
-    </div>
-  );
-};
+import YouTubePlayer from "../components/YoutubePlayer";
 
 export default function GameItem() {
   const { id } = useParams();
@@ -80,8 +13,9 @@ export default function GameItem() {
   const [videoId, setVideoId] = useState("");
 
   const location = useLocation();
-  const players = location.state;
-  
+  const team = location.state.team;
+  const players = location.state.players;
+
   // GOAL
   const [type, setType] = useState("");
   const [goaler, setGoaler] = useState("");
@@ -257,7 +191,7 @@ export default function GameItem() {
     const initializeData = async () => {
       await fetchGame(id);
       await fetchHighlights(id);
-      await fetchPlayers(team);
+      // await fetchPlayers(team);
     };
     
     if (id) {
@@ -377,12 +311,14 @@ export default function GameItem() {
 
   return (
     <> { loading ? <Loading/> : 
-      <div style = { { paddingTop : "80px" } }>
-
-        <div style = { { width : "100%", display : "flex", flexDirection : "column", alignItems : "center" } }>
-          <div style = { { width : "", display : "flex", flexDirection : "row", gap : "40px", alignItems : "" } }>
+      <div>
+        <div style = { { width : "100%", display : "flex", flexDirection : "column", alignItems : "center", borderBottom : "1px solid var(--black8)", padding : "40px 0px" } }>
+          <div style = { { marginTop : "80px", width : "", display : "flex", flexDirection : "row", gap : "40px", alignItems : "" } }>
             <div style = { { display : "flex", flexDirection : "column", gap : "8px" } }>
-              <h2>{ game.team1?.rich_text[0].plain_text }</h2>
+              <Link  to = {`/team/${team.id}`}>
+                <h2>{ game.team1?.rich_text[0].plain_text }</h2>
+              </Link>
+              
               { highlights.map((item, index) =>
                 item.type === "Goal" && item.goaler !== "Opponent" ? (
                   <div key={index}>
@@ -393,11 +329,9 @@ export default function GameItem() {
 
             </div>
             
-            <div style = { { width : "72px", margin : "0px 8px" } }>
-              <div style = { { backgroundColor : "var(--black4)", textAlign : "center", borderRadius : "var(--br)" }}>
-                <h2 className = "number" style = { { fontSize : "var(--font-size-large)"} }>{ game.score.rich_text[0]?.plain_text }</h2>
-              </div>
-            </div>
+            <span style = { { padding : "2px 24px", height : "100%", margin : "0px 8px", backgroundColor : "var(--pt0)", color : "white", textAlign : "center", borderRadius : "var(--br)" } }>
+              <h1>{ game.score.rich_text[0]?.plain_text }</h1>
+            </span>
 
             <div style = { { display : "flex", flexDirection : "column", gap : "8px" } }>
               <h2>{ game.team2?.rich_text[0].plain_text }</h2>
@@ -412,20 +346,19 @@ export default function GameItem() {
           </div>
         </div>
 
-        <hr/>
 
-
-      <div style = { { display: "flex", flexDirection: "row", marginTop : "80px", padding: "0px 16px", width: "100vw", height: "100vh", gap : "16px" } }>
+      <div style = { { display: "flex", flexDirection: "row", padding: "16px", width: "100vw", height: "100vh", gap : "16px" } }>
         <div style = { { flex: 1 } }>
           <h2>Highlight</h2>
-          <p className = "meta">For Analysis. Press the Highlight button to record timestamps. Add comments.</p>
+          <p className = "description">For Analysis, press the "Highlight Timestamp" button and add the following if any : comment, type, player.</p>
+          <br/>
 
           <YouTubePlayer videoId={videoId} onPlayerReady={setPlayer} />
 
           <br/>
 
-          <button onClick = { handleLogTimestamp } style = {{ width: "100%", height: "56px", marginBottom: "8px", backgroundColor: "var(--black4)", color: "black", border: "1px solid ", borderRadius: "4px", cursor: "pointer", fontWeight: "bold" }} >
-            Highlight Current Timestamp
+          <button onClick = { handleLogTimestamp } style = {{ width: "100%", height: "56px", marginBottom: "8px", backgroundColor: "var(--black4)", color: "black", border: "1px solid var(--black16)", borderRadius: "var(--br)", cursor: "pointer", fontWeight: "bold" }} >
+            Highlight Timestamp
           </button>
 
           <input type = "text" value = { name } onChange = { (e) => setName(e.target.value) } placeholder="Your Name"/>
@@ -436,19 +369,18 @@ export default function GameItem() {
 
           <div>
             { highlights.length > 0 ? highlights.map( ( item, index ) => (
-              <div key = { index } style = { { marginBottom: "12px", padding: "16px 12px", borderRadius: "8px", border : "1.5px solid rgba(var(--pt3), 0.16)" } }>
+              <div key = { index } style = { { marginBottom: "12px", padding: "16px 12px", borderRadius: "8px", border : "1.5px solid var(--black8)" } }>
                 <div style = { { display: "flex", alignItems: "center", gap: "8px", justifyContent: "space-between", paddingBottom : "8px" } }>
                   
                 <div style = { { display: "flex", alignItems: "center", gap: "8px" } }>
-                  <button onClick = { () => seekToTime(item.timeInSeconds) } style = { { padding: "2px 8px", borderRadius: "4px", backgroundColor: "rgba(var(--pt3), 1.0)", fontWeight : "600", color: "white", border: "none", cursor: "pointer", }}>
+                  <button onClick = { () => seekToTime(item.timeInSeconds) } style = { { padding: "2px 8px", borderRadius: "4px", backgroundColor: "var(--pt0)", fontWeight : "600", color: "white", border: "none", cursor: "pointer", }}>
                     { item.time }
                   </button>
 
-                  <span className = "meta">by</span>
-                  <span style = { { fontSize : "var(--font-size-tiny)", marginLeft : "-4px"} }>{ item.name }</span>
+                  <p className = "meta">by { item.name }</p>
 
                   <div style={{ width: "60px", display: "flex", flexDirection: "row", gap : "4px" }}>
-                    <select 
+                    <select className = "select"
                       id={`type-${index}`} 
                       value={item.type || ""} 
                       onChange={async (e) => {
@@ -469,78 +401,76 @@ export default function GameItem() {
                       <option value="Foul">Foul</option>
                     </select>
 
-                    <select 
-  id={`goaler-${index}`} 
-  value={item.player_id === "Team" || item.player_id === "Opponent" ? item.goaler || "" : item.player_id || ""}
-  onChange={async (e) => {
-    const selectedPlayerId = e.target.value;
+                    <select className = "select"
+                      id={`goaler-${index}`} 
+                      value={item.player_id === "Team" || item.player_id === "Opponent" ? item.goaler || "" : item.player_id || ""}
+                      onChange={async (e) => {
+                        const selectedPlayerId = e.target.value;
 
-    // Find selected player (or set a label for "Team" / "Opponent")
-    let newGoalerLabel = selectedPlayerId;
-    if (selectedPlayerId === "Team" || selectedPlayerId === "Opponent") {
-      newGoalerLabel = selectedPlayerId;
-    } else {
-      const selectedPlayer = players.find(player => player.id === selectedPlayerId);
-      if (selectedPlayer) {
-        const backNumber = selectedPlayer.properties.back_number.rich_text[0]?.plain_text || "";
-        const firstName = selectedPlayer.properties.first_name.rich_text[0]?.plain_text || "";
-        const lastName = selectedPlayer.properties.last_name.rich_text[0]?.plain_text || "";
-        newGoalerLabel = `${backNumber} - ${firstName} ${lastName}`;
-      }
-    }
+                        // Find selected player (or set a label for "Team" / "Opponent")
+                        let newGoalerLabel = selectedPlayerId;
+                        if (selectedPlayerId === "Team" || selectedPlayerId === "Opponent") {
+                          newGoalerLabel = selectedPlayerId;
+                        } else {
+                          const selectedPlayer = players.find(player => player.id === selectedPlayerId);
+                          if (selectedPlayer) {
+                            const backNumber = selectedPlayer.properties.back_number.rich_text[0]?.plain_text || "";
+                            const firstName = selectedPlayer.properties.first_name.rich_text[0]?.plain_text || "";
+                            const lastName = selectedPlayer.properties.last_name.rich_text[0]?.plain_text || "";
+                            newGoalerLabel = `${backNumber} - ${firstName} ${lastName}`;
+                          }
+                        }
 
-    // Update local state immediately
-    setHighlights(prevHighlights => {
-      const newHighlights = [...prevHighlights];
-      newHighlights[index] = {
-        ...newHighlights[index],
-        goaler: newGoalerLabel,
-        player_id: selectedPlayerId
-      };
+                        // Update local state immediately
+                        setHighlights(prevHighlights => {
+                          const newHighlights = [...prevHighlights];
+                          newHighlights[index] = {
+                            ...newHighlights[index],
+                            goaler: newGoalerLabel,
+                            player_id: selectedPlayerId
+                          };
 
-      // Trigger API call here so it uses fresh data
-      updateHighlightTypeAndGoaler(
-        newHighlights[index].pageId,
-        newHighlights[index].type,
-        newGoalerLabel,
-        selectedPlayerId
-      ).catch(error => {
-        console.error("Failed to update player:", error);
-      });
+                          // Trigger API call here so it uses fresh data
+                          updateHighlightTypeAndGoaler(
+                            newHighlights[index].pageId,
+                            newHighlights[index].type,
+                            newGoalerLabel,
+                            selectedPlayerId
+                          ).catch(error => {
+                            console.error("Failed to update player:", error);
+                          });
 
-      return newHighlights;
-    });
-  }}
->
-  <option value="" disabled>Player</option>
+                          return newHighlights;
+                        });
+                      }}
+                    >
+                      <option value="" disabled>Player</option>
 
-  {players.map((player, index) => {
-    const backNumber = player.properties.back_number.rich_text[0].plain_text;
-    const firstName = player.properties.first_name.rich_text[0].plain_text;
-    const lastName = player.properties.last_name.rich_text[0].plain_text;
-    const label = `${backNumber} - ${firstName} ${lastName}`;
-    return (
-      <option key={index} value={player.id}>
-        {label}
-      </option>
-    );
-  })}
+                      {players.map((player, index) => {
+                        const backNumber = player.properties.back_number.rich_text[0].plain_text;
+                        const firstName = player.properties.first_name.rich_text[0].plain_text;
+                        const lastName = player.properties.last_name.rich_text[0].plain_text;
+                        const label = `${backNumber} - ${firstName} ${lastName}`;
+                        return (
+                          <option key={index} value={player.id}>
+                            {label}
+                          </option>
+                        );
+                      })}
 
-  <option value="Team">Team</option>
-  <option value="Opponent">Opponent</option>
-</select>
-
+                      <option value="Team">Team</option>
+                      <option value="Opponent">Opponent</option>
+                    </select>
                   </div>
-
                 </div>
 
                   <span className = "meta" style = { { flex : "flex-end"} }>{ item.comments.length } comment{ item.comments.length !== 1 ? 's' : '' }</span>
                 </div>
                 
-              { item.comments.map( ( comment, cIndex ) => (
-                <div key = { cIndex } style = { { padding: "8px 0px" } }>
-                  <span style = {{ fontWeight: "bold", fontSize: "var(--font-size-tiny)" }}>{ comment.name }</span>
-                  <p style = { { fontSize: "var(--font-size-small)", paddingTop : "4px" }}>{ comment.comment }</p>
+              { item.comments.map( ( comment, index ) => (
+                <div key = { index} style = { { lineHeight : "100%", paddingBottom : "8px"} }>
+                  <p className = "commentName">{ comment.name }</p>
+                  <p className = "commentContent">{ comment.comment }</p>
                 </div>
                 ))
               }

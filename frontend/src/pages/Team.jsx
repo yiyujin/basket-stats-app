@@ -5,6 +5,7 @@ import Loading from "../components/Loading";
 import IconButton from "../components/IconButton";
 import GameListItem from "../components/GameListItem";
 import TeamDivider from "../components/TeamDivider";
+import Chip from "../components/Chip";
 
 import { ArrowForward, EventAvailable, Stadium } from '@mui/icons-material';
 
@@ -239,8 +240,7 @@ export default function Team(){
                     .sort(([dateA], [dateB]) => new Date(dateB) - new Date(dateA)) // <- Optional: newest dates first
                     .map(([date, gamesOnDate]) => (
                       <div key={date}>
-
-                        <div style={{ marginTop: "40px", display: "flex", flexDirection: "row", gap: "16px", alignItems: "center" }}>
+                        <div style={{ marginTop: "40px", marginBottom : "4px", display: "flex", flexDirection: "row", gap: "16px", alignItems: "center" }}>
                         <h3>{formatDate(date)}</h3>
 
                         {gamesOnDate.length > 0 && (
@@ -251,6 +251,12 @@ export default function Team(){
                             </p>
                           </div>
                         )}
+
+                        { new Date(date) > new Date() && (
+                          <Chip text={`D - ${Math.ceil((new Date(date) - new Date()) / (1000 * 3600 * 24))}`} color = { teamColor }/>
+                        ) }
+
+
                         </div>
 
                         {/* Display all games for this date */}
@@ -280,7 +286,7 @@ export default function Team(){
                           <p className = "meta">{ item.properties.Date.date.start }</p>
                         </div>
 
-                      <Link to = {`/gameitem/${item.id}`} state = { id }>
+                      <Link to = {`/gameitem/${item.id}`}>
                           <IconButton icon = { ArrowForward }/>
                       </Link>
                     </div>
@@ -290,10 +296,11 @@ export default function Team(){
                 <TeamDivider text = "Highlights" length = ""/>
                 
                 <TeamDivider text = "Squad" length = { players.length }/>
+                
                 { players.map( ( item, index) => (
                   <div key={index} className = "player-list-item-container" style = { { position : "relative", overflow : "hidden", display : "flex", width : "100%", height : "120px", backgroundColor : "var(--black4)", alignItems : "center", padding : "24px", marginBottom : "8px" } }>
                   
-                      <span style = { { position: "absolute", top: "10%", left: "50%", width: "150%", height: "400%", backgroundColor: teamColor, transform: "rotate(-10deg)", zIndex: -1 } }></span>
+                      <span style = { { position: "absolute", top: "10%", left: "50%", width: "150%", height: "800%", opacity : "1", backgroundColor: teamColor, transform: "rotate(-10deg)", zIndex: -1 } }></span>
                       <img className = "player-logo" src = { data.icon?.file.url ? data.icon.file.url : "" }/>
                       <img className = "player-profile" src = { item.properties.profile_picture?.rich_text[0]?.plain_text || "https://am-a.akamaihd.net/image?resize=375:&f=http://static.lolesports.com/players/silhouette.png" }/>
                     
