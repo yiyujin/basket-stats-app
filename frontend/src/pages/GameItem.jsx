@@ -134,9 +134,11 @@ export default function GameItem() {
           JSON.parse(highlight.properties.comments.rich_text[0].plain_text) : [],
         type : highlight.properties.type.rich_text[0]?.plain_text,
         goaler : highlight.properties.goaler.rich_text[0]?.plain_text,
+        player_id : highlight.properties.player_id.rich_text[0]?.plain_text, // 일단
         })
       );
       
+      // console.log("formattedHighlights", formattedHighlights);
       setHighlights(formattedHighlights);
     } catch (error) {
       console.error("Error fetching highlights:", error);
@@ -210,7 +212,7 @@ export default function GameItem() {
     }
   }
 
-  const updateHighlightTypeAndGoaler = async (pageId, type, goaler) => {
+  const updateHighlightTypeAndGoaler = async (pageId, type, goaler, player_id) => {
     if (!pageId) {
       console.warn("No pageId found for this highlight. Skipping update.");
       return false;
@@ -225,7 +227,8 @@ export default function GameItem() {
         body: JSON.stringify({
           pageId,
           type,
-          goaler
+          goaler,
+          player_id
         }),
       });
   
@@ -453,36 +456,68 @@ export default function GameItem() {
                         updatedHighlights[index].type = newType;
                         setHighlights(updatedHighlights);
                         
-                        // Update in Notion
-                        await updateHighlightTypeAndGoaler(item.pageId, newType, item.goaler);
+                        await updateHighlightTypeAndGoaler(item.pageId, newType, item.goaler, item.player_id);
                       }}
                     >
                       <option value="" disabled>Type</option>
+                      <option value="Highlight">Highlight</option>
                       <option value="Goal">Goal</option>
+                      <option value="Save">Assist</option>
                       <option value="Save">Save</option>
                       <option value="Foul">Foul</option>
                     </select>
 
                     <select 
                       id={`goaler-${index}`} 
-                      value={item.goaler || ""} 
+                      value={item.player_id === "Team" || item.player_id === "Opponent" ? item.goaler || "" : item.player_id || ""}
                       onChange={async (e) => {
-                        const newGoaler = e.target.value;
-                        // Update local state
-                        const updatedHighlights = [...highlights];
-                        updatedHighlights[index].goaler = newGoaler;
-                        setHighlights(updatedHighlights);
+                        const selectedPlayerId = e.target.value;
                         
-                        // Update in Notion
-                        await updateHighlightTypeAndGoaler(item.pageId, item.type, newGoaler);
+                        // Find selected player (or set a label for "Team" / "Opponent")
+                        let newGoalerLabel = selectedPlayerId;
+                        if (selectedPlayerId === "Team" || selectedPlayerId === "Opponent") {
+                          newGoalerLabel = selectedPlayerId;
+                        } else {
+                          const selectedPlayer = players.find(player => player.id === selectedPlayerId);
+                          if (selectedPlayer) {
+                            const backNumber = selectedPlayer.properties.back_number.rich_text[0]?.plain_text || "";
+                            const firstName = selectedPlayer.properties.first_name.rich_text[0]?.plain_text || "";
+                            const lastName = selectedPlayer.properties.last_name.rich_text[0]?.plain_text || "";
+                            newGoalerLabel = `${backNumber} - ${firstName} ${lastName}`;
+                          }
+                        }
+                        
+                        // Update local state immediately with spread operator to ensure a new object reference
+                        setHighlights(prevHighlights => {
+                          const newHighlights = [...prevHighlights];
+                          newHighlights[index] = {
+                            ...newHighlights[index],
+                            goaler: newGoalerLabel,
+                            player_id: selectedPlayerId
+                          };
+                          return newHighlights;
+                        });
+                        
+                        // Then make the API call
+                        try {
+                          await updateHighlightTypeAndGoaler(item.pageId, item.type, newGoalerLabel, selectedPlayerId);
+                        } catch (error) {
+                          console.error("Failed to update player:", error);
+                        }
                       }}
                     >
                       <option value="" disabled>Player</option>
-                      {players.map((player, pidx) =>
-                        <option key={pidx} value={`${player.properties.back_number.rich_text[0].plain_text} - ${player.properties.first_name.rich_text[0].plain_text} ${player.properties.last_name.rich_text[0].plain_text}`}>
-                          {player.properties.back_number.rich_text[0].plain_text} - {player.properties.first_name.rich_text[0].plain_text} {player.properties.last_name.rich_text[0].plain_text}
-                        </option>
-                      )}
+                        {players.map((player, index) => {
+                          const backNumber = player.properties.back_number.rich_text[0].plain_text;
+                          const firstName = player.properties.first_name.rich_text[0].plain_text;
+                          const lastName = player.properties.last_name.rich_text[0].plain_text;
+                          const label = `${backNumber} - ${firstName} ${lastName}`;
+                          return (
+                            <option key={index} value={player.id}>
+                              {label}
+                            </option>
+                          );
+                        })}
                       <option value="Team">Team</option>
                       <option value="Opponent">Opponent</option>
                     </select>
