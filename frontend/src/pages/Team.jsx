@@ -6,7 +6,7 @@ import IconButton from "../components/IconButton";
 import GameListItem from "../components/GameListItem";
 import TeamDivider from "../components/TeamDivider";
 
-import { ArrowForward, EventAvailable } from '@mui/icons-material';
+import { ArrowForward, EventAvailable, Stadium } from '@mui/icons-material';
 
 export default function Team(){
   const { id } = useParams();
@@ -22,6 +22,16 @@ export default function Team(){
   const [loading, setLoading] = useState(true);
 
   const [activeTab, setActiveTab] = useState(1); // 1 for first tab, 2 for second tab
+
+  function formatDate(dateString) {
+    const [year, month, day] = dateString.split('-');
+    const date = new Date(+year, +month - 1, +day); // month is 0-indexed
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+  }  
 
   const fetchData = async ( id ) => {
     try {
@@ -96,6 +106,7 @@ export default function Team(){
         game.properties.team1.rich_text?.[0]?.plain_text !== data.properties?.Name?.title?.[0]?.plain_text
       );        
 
+      console.log("games", games);
       setGames(games);
       setOpponentGames(opponentGames);
     } catch (error) {
@@ -215,18 +226,49 @@ export default function Team(){
                 </div>
                 { activeTab === 1 ? (
                   <div>
-                    {games.map((game, index) => (
-                      <GameListItem
-                        key={game.id}
-                        id={game.id}
-                        icon={data.icon?.file.url || ""}
-                        color={teamColor}
-                        data={game}
-                        team={data}
-                        players={players}
-                        highlightsLen={gameHighlights[game.id] || 0}
-                      />
-                    ))} 
+                    {Object.entries(
+                      games.reduce((acc, game) => {
+                        const date = game.properties?.Date?.date?.start || "No Date";
+                        if (!acc[date]) {
+                          acc[date] = [];
+                        }
+                        acc[date].push(game);
+                        return acc;
+                      }, {})
+                    )
+                    .sort(([dateA], [dateB]) => new Date(dateB) - new Date(dateA)) // <- Optional: newest dates first
+                    .map(([date, gamesOnDate]) => (
+                      <div key={date}>
+
+                        <div style={{ marginTop: "40px", display: "flex", flexDirection: "row", gap: "16px", alignItems: "center" }}>
+                        <h3>{formatDate(date)}</h3>
+
+                        {gamesOnDate.length > 0 && (
+                          <div style={{ display: "flex", flexDirection: "row", gap: "4px", alignItems: "center" }}>
+                            <Stadium style={{ fontSize: "14px", color: "black" }} />
+                            <p className="meta">
+                              {gamesOnDate[0].properties?.venue?.rich_text[0]?.plain_text || "-"}
+                            </p>
+                          </div>
+                        )}
+                        </div>
+
+                        {/* Display all games for this date */}
+                        {gamesOnDate.map((game) => (
+                          <GameListItem
+                            key={game.id}
+                            id={game.id}
+                            icon={data.icon?.file.url || ""}
+                            color={teamColor}
+                            data={game}
+                            team={data}
+                            players={players}
+                            highlightsLen={gameHighlights[game.id] || 0}
+                          />
+                        ))}
+                      </div>
+                    ))}
+
                   </div>                 
                 ) : (
                   opponentGames.map( ( item, index ) => (
