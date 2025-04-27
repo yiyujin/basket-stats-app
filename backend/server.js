@@ -509,6 +509,56 @@ app.post("/api/query-a-database-highlights", async (req, res) => {
   }
 });
 
+// GET HIGHLIGHTS - FITLER BY PLAYER
+export async function queryADatabaseHighlightsPlayer( id ) {
+  const notion = new Client({ auth: TOKEN });
+
+  const response = await notion.databases.query({
+    database_id: DATABASE_ID_HIGHLIGHTS,
+    filter: {
+      and: [
+        // {
+        //   property: "status",
+        //   select: {
+        //     equals: "Active",
+        //   },
+        // },
+        {
+          property: "player_id",
+          rich_text : {
+            equals : id
+          }
+        },
+      ],
+    },
+
+    sorts: [
+      {
+        property: "Created",
+        direction: "descending",
+      },
+    ],
+  });
+
+  return response.results;
+}
+
+app.post("/api/query-a-database-highlights-player", async (req, res) => {
+  try {
+    const { id } = req.body;
+
+    if (!id) {
+      return res.status(400).json({ error: "Missing required 'id' field" });
+    }
+
+    const results = await queryADatabaseHighlightsPlayer(id);
+    res.json(results);
+  } catch (error) {
+    console.error("Error querying Notion database:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 
 //RETRIEVE A PAGE
 // get a team
@@ -933,7 +983,7 @@ app.patch("/api/update-a-page-highlights", async (req, res) => {
 });
 
 // UPDATE HIGHLIGHT - TYPE, GOALER
-export async function updatePageHighlightsType( pageId, type, goaler ) {
+export async function updatePageHighlightsType( pageId, type, goaler, player_id ) {
   const notion = new Client({ auth: TOKEN });
 
   try {
@@ -958,6 +1008,15 @@ export async function updatePageHighlightsType( pageId, type, goaler ) {
             },
           ],
         },
+        player_id: {
+          rich_text: [
+            {
+              text: {
+                content: player_id,
+              },
+            },
+          ],
+        },
       },
     });
 
@@ -969,10 +1028,10 @@ export async function updatePageHighlightsType( pageId, type, goaler ) {
 }
 
 app.patch("/api/update-a-page-highlights-type", async (req, res) => {
-  const { pageId, type, goaler } = req.body;
+  const { pageId, type, goaler, player_id } = req.body;
 
   try {
-    const result = await updatePageHighlightsType(pageId, type, goaler);
+    const result = await updatePageHighlightsType(pageId, type, goaler, player_id);
     res.status(200).json(result);
   } catch (error) {
     res.status(500).json({ error: error.message });

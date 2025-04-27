@@ -4,12 +4,26 @@ import { Link, useParams } from "react-router-dom";
 import Loading from "../components/Loading";
 import PlayerRow from "../components/PlayerRow";
 import StatsChip from "../components/StatsChip";
+import YouTubePlayer from "../components/YoutubePlayer";
 
 export default function Player(){
     const { id } = useParams();
 
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(true);
+
+    const [highlights, setHighlights] = useState([]);
+
+    // VIDEO VARIABLE 
+    const videoId = "3WeO2xRQHg0";
+    const [player, setPlayer] = useState(null);
+
+    const seekToTime = (seconds) => {
+      if (player) {
+        const seekTime = Math.max(seconds - 5, 0);
+        player.seekTo(seekTime, true);
+      }
+    };
 
     const fetchData = async ( id ) => {
       try {
@@ -32,10 +46,49 @@ export default function Player(){
         console.error("Error fetching data:", error.message);
       }
     };
-      
+
+    const fetchHighlights = async (id) => {
+      try {
+        const response = await fetch(`http://localhost:8000/api/query-a-database-highlights-player`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ id: id }),
+        });
+        
+        if (!response.ok) {
+          throw new Error("Failed to fetch highlights");
+        }
+        
+        const result = await response.json();
+        
+        // Transform API response into your component's expected format
+        const formattedHighlights = result.map(highlight => ({
+          pageId: highlight.id, // Store the Notion page ID
+          time: highlight.properties.time.rich_text[0]?.plain_text,
+          timeInSeconds: parseInt(highlight.properties.time_in_seconds.rich_text[0]?.plain_text),
+          name: highlight.properties.created_by.rich_text[0]?.plain_text,
+          comments: highlight.properties.comments.rich_text[0]?.plain_text ? 
+            JSON.parse(highlight.properties.comments.rich_text[0].plain_text) : [],
+          type : highlight.properties.type.rich_text[0]?.plain_text,
+          goaler : highlight.properties.goaler.rich_text[0]?.plain_text,
+          player_id : highlight.properties.player_id.rich_text[0]?.plain_text, // 일단
+          })
+        );
+        
+        console.log("formattedHighlights", formattedHighlights);
+        setHighlights(formattedHighlights);
+      } catch (error) {
+        console.error("Error fetching highlights:", error);
+        setHighlights([]); // Set to empty array if fetch fails
+      }
+    };
+
     useEffect(() => {
-    fetchData(id);
-    }, []);
+      fetchData(id);
+      fetchHighlights(id);
+      }, []);
 
     return(
       <>
@@ -88,6 +141,23 @@ export default function Player(){
                   </div>
 
                   <h2 style = { { paddingTop : "72px", paddingBottom : "8px" } }>Highlights</h2>
+
+                
+                  <div style = { { display : "flex", flexDirection : "row", gap : "8px" } }>
+
+                  <div style = { { display : "flex", flexDirection : "column", gap : "8px" } }>
+                  { highlights.map( ( item, index ) => (
+                      <div key = { index } onClick = { () => seekToTime(item.timeInSeconds)} style = { { display: "flex", flexDirection: "row", alignItems: "center", gap: "8px", padding: "2px 8px", borderRadius: "4px", backgroundColor: "var(--black4)", fontWeight: "600", color: "var(--pt0)", border: "none", cursor: "pointer" } }>
+                        { item.type === "Goal" && <img width = "12px" src = "https://www.premierleague.com/resources/rebrand/v7.153.55/i/elements/icons/ball-small.svg" alt = "ball" /> }
+                        <p>{ item.time }</p>
+                      </div>
+                  ))}
+                  </div>
+
+                  <YouTubePlayer videoId={videoId} onPlayerReady={setPlayer} />
+
+                  </div>
+
 
                   <h2 style = { { paddingTop : "72px", paddingBottom : "8px" } }>Gallery</h2>
                 </div>

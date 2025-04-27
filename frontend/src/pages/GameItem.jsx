@@ -217,6 +217,8 @@ export default function GameItem() {
       console.warn("No pageId found for this highlight. Skipping update.");
       return false;
     }
+
+    console.log(player_id);
     
     try {
       const response = await fetch("http://localhost:8000/api/update-a-page-highlights-type", {
@@ -468,59 +470,66 @@ export default function GameItem() {
                     </select>
 
                     <select 
-                      id={`goaler-${index}`} 
-                      value={item.player_id === "Team" || item.player_id === "Opponent" ? item.goaler || "" : item.player_id || ""}
-                      onChange={async (e) => {
-                        const selectedPlayerId = e.target.value;
-                        
-                        // Find selected player (or set a label for "Team" / "Opponent")
-                        let newGoalerLabel = selectedPlayerId;
-                        if (selectedPlayerId === "Team" || selectedPlayerId === "Opponent") {
-                          newGoalerLabel = selectedPlayerId;
-                        } else {
-                          const selectedPlayer = players.find(player => player.id === selectedPlayerId);
-                          if (selectedPlayer) {
-                            const backNumber = selectedPlayer.properties.back_number.rich_text[0]?.plain_text || "";
-                            const firstName = selectedPlayer.properties.first_name.rich_text[0]?.plain_text || "";
-                            const lastName = selectedPlayer.properties.last_name.rich_text[0]?.plain_text || "";
-                            newGoalerLabel = `${backNumber} - ${firstName} ${lastName}`;
-                          }
-                        }
-                        
-                        // Update local state immediately with spread operator to ensure a new object reference
-                        setHighlights(prevHighlights => {
-                          const newHighlights = [...prevHighlights];
-                          newHighlights[index] = {
-                            ...newHighlights[index],
-                            goaler: newGoalerLabel,
-                            player_id: selectedPlayerId
-                          };
-                          return newHighlights;
-                        });
-                        
-                        // Then make the API call
-                        try {
-                          await updateHighlightTypeAndGoaler(item.pageId, item.type, newGoalerLabel, selectedPlayerId);
-                        } catch (error) {
-                          console.error("Failed to update player:", error);
-                        }
-                      }}
-                    >
-                      <option value="" disabled>Player</option>
-                        {players.map((player, index) => {
-                          const backNumber = player.properties.back_number.rich_text[0].plain_text;
-                          const firstName = player.properties.first_name.rich_text[0].plain_text;
-                          const lastName = player.properties.last_name.rich_text[0].plain_text;
-                          const label = `${backNumber} - ${firstName} ${lastName}`;
-                          return (
-                            <option key={index} value={player.id}>
-                              {label}
-                            </option>
-                          );
-                        })}
-                      <option value="Team">Team</option>
-                      <option value="Opponent">Opponent</option>
-                    </select>
+  id={`goaler-${index}`} 
+  value={item.player_id === "Team" || item.player_id === "Opponent" ? item.goaler || "" : item.player_id || ""}
+  onChange={async (e) => {
+    const selectedPlayerId = e.target.value;
+
+    // Find selected player (or set a label for "Team" / "Opponent")
+    let newGoalerLabel = selectedPlayerId;
+    if (selectedPlayerId === "Team" || selectedPlayerId === "Opponent") {
+      newGoalerLabel = selectedPlayerId;
+    } else {
+      const selectedPlayer = players.find(player => player.id === selectedPlayerId);
+      if (selectedPlayer) {
+        const backNumber = selectedPlayer.properties.back_number.rich_text[0]?.plain_text || "";
+        const firstName = selectedPlayer.properties.first_name.rich_text[0]?.plain_text || "";
+        const lastName = selectedPlayer.properties.last_name.rich_text[0]?.plain_text || "";
+        newGoalerLabel = `${backNumber} - ${firstName} ${lastName}`;
+      }
+    }
+
+    // Update local state immediately
+    setHighlights(prevHighlights => {
+      const newHighlights = [...prevHighlights];
+      newHighlights[index] = {
+        ...newHighlights[index],
+        goaler: newGoalerLabel,
+        player_id: selectedPlayerId
+      };
+
+      // Trigger API call here so it uses fresh data
+      updateHighlightTypeAndGoaler(
+        newHighlights[index].pageId,
+        newHighlights[index].type,
+        newGoalerLabel,
+        selectedPlayerId
+      ).catch(error => {
+        console.error("Failed to update player:", error);
+      });
+
+      return newHighlights;
+    });
+  }}
+>
+  <option value="" disabled>Player</option>
+
+  {players.map((player, index) => {
+    const backNumber = player.properties.back_number.rich_text[0].plain_text;
+    const firstName = player.properties.first_name.rich_text[0].plain_text;
+    const lastName = player.properties.last_name.rich_text[0].plain_text;
+    const label = `${backNumber} - ${firstName} ${lastName}`;
+    return (
+      <option key={index} value={player.id}>
+        {label}
+      </option>
+    );
+  })}
+
+  <option value="Team">Team</option>
+  <option value="Opponent">Opponent</option>
+</select>
+
                   </div>
 
                 </div>
