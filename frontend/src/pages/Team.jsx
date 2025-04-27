@@ -6,6 +6,7 @@ import IconButton from "../components/IconButton";
 import GameListItem from "../components/GameListItem";
 import TeamDivider from "../components/TeamDivider";
 import Chip from "../components/Chip";
+import PlayerListItem from "../components/PlayerListItem";
 
 import { ArrowForward, EventAvailable, Stadium } from '@mui/icons-material';
 
@@ -179,6 +180,17 @@ export default function Team(){
     }
   }, [allLoaded]);
 
+  const groupedPlayersByPosition = Object.entries(
+    players.reduce((acc, player) => {
+      const position = player.properties.position_rollup?.rollup.array[0]?.title[0]?.plain_text || "Unknown";
+      if (!acc[position]) {
+        acc[position] = [];
+      }
+      acc[position].push(player);
+      return acc;
+    }, {})
+  );
+
   return (
       <>
         { loading ? <Loading/> :
@@ -214,10 +226,10 @@ export default function Team(){
             <div style = { { display : "flex", flexDirection : "row", gap : "40px" } }>
               
               <div className = "dashboard-nav-container">
-                <h3 className = "dashboard-nav">Games</h3>
-                <h3 className = "dashboard-nav">Highlights</h3>
-                <h3 className = "dashboard-nav">Squad</h3>
-                <h3 className = "dashboard-nav">Gallery</h3>
+                <p>Games</p>
+                <p>Highlights</p>
+                <p>Squad</p>
+                <p>Gallery</p>
               </div>
 
               <div style = { { width : "100%"} }>
@@ -297,30 +309,17 @@ export default function Team(){
                 
                 <TeamDivider text = "Squad" length = { players.length }/>
                 
-                { players.map( ( item, index) => (
-                  <div key={index} className = "player-list-item-container" style = { { position : "relative", overflow : "hidden", display : "flex", width : "100%", height : "120px", backgroundColor : "var(--black4)", alignItems : "center", padding : "24px", marginBottom : "8px" } }>
-                  
-                      <span style = { { position: "absolute", top: "10%", left: "50%", width: "150%", height: "800%", opacity : "1", backgroundColor: teamColor, transform: "rotate(-10deg)", zIndex: -1 } }></span>
-                      <img className = "player-logo" src = { data.icon?.file.url ? data.icon.file.url : "" }/>
-                      <img className = "player-profile" src = { item.properties.profile_picture?.rich_text[0]?.plain_text || "https://am-a.akamaihd.net/image?resize=375:&f=http://static.lolesports.com/players/silhouette.png" }/>
+                {groupedPlayersByPosition.map(([position, playersInPosition]) => (
+                  <div key={position}>
+                    <h2 style={{ marginTop: "40px", marginBottom: "16px" }}>{position}s</h2>
                     
-                      <div style = { { flex : 1, display : "flex", flexDirection : "column", gap : "0px", alignItems : "center" } }>
-
-                        <div className = "icon-container">
-                          <p className = "number">{ item.properties.back_number.rich_text[0].plain_text }</p>
-                        </div>
-                      
-                        <h2 style = { { marginRight : "8px" } }>{ item.properties.first_name.rich_text[0].plain_text } { item.properties.last_name.rich_text[0].plain_text }</h2>
-                        <p className = "meta">{ item.properties.Name.title[0].plain_text } · { item.properties.position_rollup?.rollup.array[0].title[0].plain_text }</p>
-                        
-                      </div>
-
-                      <Link to = {`/player/${item.id}`} style = { { zIndex: 2 } }>
-                        <IconButton icon = { ArrowForward }/>
-                      </Link>
-                    
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)",  gap: "16px" }}>
+                      {playersInPosition.map((player) => (
+                        <PlayerListItem key={player.id} item={player} teamColor = { teamColor } />
+                      ))}
+                    </div>
                   </div>
-                ) )}
+                ))}
 
                 <TeamDivider text = "Gallery" length = ""/>
               </div>     

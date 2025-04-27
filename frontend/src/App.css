@@ -346,8 +346,8 @@ input:focus, button:focus {
     border : 1px solid var(--black8);
 }
 
-.dashboard-nav {
-    width : 300px;
+.dashboard-nav-container p {
+    width : 160px;
     height : 48px;
 
     display : flex;
@@ -439,14 +439,6 @@ input:focus, button:focus {
     border-bottom : 1px solid var(--black40);
 }
 
-.gameListItem {
-    background-color: transparent;
-}
-
-.gameListItem:hover {
-    background-color: var(--black4);
-}
-
 .icon-button {
     width : 40px;
     height : 40px;
@@ -460,17 +452,6 @@ input:focus, button:focus {
 .icon-button:hover {
     background-color: var(--black16);
 }
-
-
-.icon-container {
-    width : 40px;
-    height : 40px;
-
-    display : flex;
-    align-items : center;
-    justify-content : center;
-}
-
 .icon {
     width : 20px;
     height : 20px;
@@ -561,15 +542,6 @@ img.twemoji {
   display: inline-block !important;
 }
 
-/* .player-list-item-container>img {
-    overflow : hidden;
-    position : absolute;
-    z-index : -1;
-    opacity : 0.25;
-    right : 0;
-    height : 180px;
-} */
-
 .player-logo {
     overflow : hidden;
     position : absolute;
@@ -582,11 +554,12 @@ img.twemoji {
 .player-profile {
     overflow : hidden;
     position : absolute;
-    z-index : 1;
+    z-index : -1;
     right : 0;
     width : 160px;
     /* height : 180px; */
     top : 0;
+    right : -5%;
 }
 
 .player-button:hover {
